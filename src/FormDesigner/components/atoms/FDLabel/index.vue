@@ -60,7 +60,6 @@ export default class FDLabel extends Mixins(FdControlVue) {
    *
    */
   protected get cssStyleProperty (): Partial<CSSStyleDeclaration> {
-    console.log('property||', this.properties)
     const controlProp = this.properties
     this.reverseStyle.justifyContent = "center"
     if(!controlProp.Picture){
