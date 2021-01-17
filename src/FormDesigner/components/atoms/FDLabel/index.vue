@@ -10,7 +10,7 @@
     @click.stop="labelClick"
   >
     <div id="logo" :style="reverseStyle">
-    <img id="img" :src="properties.Picture">
+    <img v-if="properties.Picture" id="img" :src="properties.Picture" :style="imageProperty">
     <div v-if="!syncIsEditMode" id="label" :style="labelStyle">
       <span>{{ computedCaption.afterbeginCaption }}</span>
       <span class="spanClass">{{ computedCaption.acceleratorCaption }}</span>
@@ -18,8 +18,9 @@
     </div>
     <FDEditableText
       v-else
+      id="label"
       :editable="isRunMode === false && syncIsEditMode"
-      :style="editCssObj"
+      :style="labelStyle"
       :caption="properties.Caption"
       @updateCaption="updateCaption"
       @releaseEditMode="releaseEditMode"
@@ -33,6 +34,7 @@
 import { Component, Watch, Mixins, Emit } from 'vue-property-decorator'
 import FDEditableText from '@/FormDesigner/components/atoms/FDEditableText/index.vue'
 import FdControlVue from '@/api/abstract/FormDesigner/FdControlVue'
+import Vue from 'vue'
 
 @Component({
   name: 'FDLabel',
@@ -49,6 +51,7 @@ export default class FDLabel extends Mixins(FdControlVue) {
    position:'',
    justifyContent:'center'
   }
+  imageProperty={}
   $el!: HTMLLabelElement;
   /**
    * @description style object is passed to :style attribute in label tag
@@ -148,6 +151,43 @@ export default class FDLabel extends Mixins(FdControlVue) {
       backgroundImage: 'none'
     }
   }
+  @Watch('properties.Height')
+  updateImageSizeHeight () {
+    const  imgStyle={
+      width:'auto',
+      height:'auto'
+    }
+    if (this.properties.Picture) {
+      Vue.nextTick(() => {
+      const imgProp = document.getElementById('img')
+      console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
+      if (this.properties.Height! < imgProp!.clientHeight) {
+          imgStyle.height = '-webkit-fill-available'
+          imgStyle.width = '100%'
+
+      }
+      })
+    }
+      this.imageProperty = imgStyle
+  }
+  @Watch('properties.Width')
+  updateImageSizeWidth () {
+    const  imgStyle={
+      width:'auto',
+      height:'auto'
+    }
+    if (this.properties.Picture) {
+      Vue.nextTick(() => {
+      const imgProp = document.getElementById('img')
+      console.log('imgSixe||', imgProp!.clientHeight,imgProp!.clientWidth)
+      if (this.properties.Width! < imgProp!.clientWidth) {
+          imgStyle.width = '100%'
+          imgStyle.height = '-webkit-fill-available'
+      }
+      })
+    }
+      this.imageProperty = imgStyle
+  }
 
   /**
    * @description watches changes in propControlData to set autoset when true
@@ -190,7 +230,13 @@ export default class FDLabel extends Mixins(FdControlVue) {
    */
   updateAutoSize () {
     if (this.properties.AutoSize === true) {
+      const  imgStyle={
+      width:'auto',
+      height:'auto'
+      }
+      this.imageProperty = imgStyle
       this.$nextTick(() => {
+        debugger;
         this.updateDataModel({
           propertyName: 'Height',
           value: (this.$el.childNodes[0] as HTMLSpanElement).offsetHeight + 10
@@ -287,7 +333,7 @@ export default class FDLabel extends Mixins(FdControlVue) {
         default:
           console.log('none')
       }
-      console.log("style||",style)
+      // console.log("style||",style)
       this.labelStyle = style 
     }
 }
@@ -319,7 +365,7 @@ export default class FDLabel extends Mixins(FdControlVue) {
   display: inline-flex;
   /* position: absolute; */
 }
-#img{
+/* #img{
   width: 100%;
-}
+} */
 </style>
