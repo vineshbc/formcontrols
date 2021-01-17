@@ -236,7 +236,6 @@ export default class FDLabel extends Mixins(FdControlVue) {
       }
       this.imageProperty = imgStyle
       this.$nextTick(() => {
-        debugger;
         this.updateDataModel({
           propertyName: 'Height',
           value: (this.$el.childNodes[0] as HTMLSpanElement).offsetHeight + 10
@@ -271,7 +270,8 @@ export default class FDLabel extends Mixins(FdControlVue) {
         transform:'',
         top:'',
         left:'',
-        position:''
+        position:'',
+        display:'inline-flex'
       }
       this.reverseStyle = {
       display : '',
@@ -361,10 +361,7 @@ export default class FDLabel extends Mixins(FdControlVue) {
  display: inline-flex;
  justify-content: center;
 }
-#label{
-  display: inline-flex;
-  /* position: absolute; */
-}
+
 /* #img{
   width: 100%;
 } */
