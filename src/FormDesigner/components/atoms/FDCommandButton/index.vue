@@ -15,27 +15,32 @@
     @keydown.enter.prevent="setContentEditable($event, true)"
     @click.stop="commandButtonClick"
   >
-    <span v-if="!syncIsEditMode || isRunMode">
+  <div id="logo" :style="reverseStyle">
+    <img v-if="properties.Picture" id="img" :src="properties.Picture" :style="imageProperty">
+    <div v-if="!syncIsEditMode || isRunMode" :style="labelStyle">
       <span>{{ computedCaption.afterbeginCaption }}</span>
       <span class="spanClass">{{ computedCaption.acceleratorCaption }}</span>
       <span>{{ computedCaption.beforeendCaption }}</span>
-    </span>
+    </div>
     <FDEditableText
       v-else
       :editable="isRunMode === false && syncIsEditMode"
-      :style="editCssObj"
+      :style="labelStyle"
       :caption="properties.Caption"
       @updateCaption="updateCaption"
       @releaseEditMode="releaseEditMode"
     >
     </FDEditableText>
+    </div>
   </button>
 </template>
 
 <script lang="ts">
+/*eslint-disable */
 import { Component, Emit, Mixins, Prop, Watch } from 'vue-property-decorator'
 import FdControlVue from '@/api/abstract/FormDesigner/FdControlVue'
 import FDEditableText from '@/FormDesigner/components/atoms/FDEditableText/index.vue'
+import Vue from 'vue'
 
 @Component({
   name: 'FDCommandButton',
@@ -47,7 +52,15 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
   $el!: HTMLButtonElement;
   isClicked: boolean = false;
   isContentEditable: boolean = false;
-
+  labelStyle = {}
+  reverseStyle = {
+    display: '',
+    flexDirection: '',
+    justifyItems: '',
+    position: '',
+    justifyContent: 'center'
+  }
+  imageProperty={}
   /**
    * @description getDisableValue checks for the RunMode of the control and then returns after checking for the Enabled
    * and the Locked property
@@ -93,6 +106,11 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
    */
   updateAutoSize () {
     if (this.properties.AutoSize === true) {
+    const  imgStyle={
+      width:'auto',
+      height:'auto'
+      }
+      this.imageProperty = imgStyle
       this.$nextTick(() => {
         this.updateDataModel({
           propertyName: 'Height',
@@ -104,6 +122,73 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
         })
       })
     }
+  }
+
+  positionLogo (value:any) {
+    let style = {
+      order: Number(),
+      alignItems: '',
+      transform: '',
+      top: '',
+      left: '',
+      position: '',
+      display: 'inline-flex'
+    }
+    this.reverseStyle = {
+      display: '',
+      flexDirection: '',
+      justifyItems: '',
+      position: '',
+      justifyContent: 'center'
+    }
+    this.reverseStyle.display = 'flex'
+    switch (value) {
+      case 0: break
+      case 1:style.alignItems = 'center'
+        break
+      case 2:style.alignItems = 'flex-end'
+        break
+      case 3: this.reverseStyle.flexDirection = 'row-reverse'
+        break
+      case 4:
+        this.reverseStyle.flexDirection = 'row-reverse'
+        style.alignItems = 'center'
+        break
+      case 5:
+        this.reverseStyle.flexDirection = 'row-reverse'
+        style.alignItems = 'flex-end'
+        break
+      case 6:
+        this.reverseStyle.display = 'grid'
+        break
+      case 7: this.reverseStyle.display = 'grid'
+        this.reverseStyle.justifyItems = 'center'
+        break
+      case 8: this.reverseStyle.display = 'grid'
+        this.reverseStyle.justifyItems = 'end'
+        break
+      case 9: this.reverseStyle.display = 'grid'
+        style.order = -1
+        break
+      case 10: this.reverseStyle.display = 'grid'
+        this.reverseStyle.justifyItems = 'center'
+        style.order = -1
+        break
+      case 11: this.reverseStyle.display = 'grid'
+        this.reverseStyle.justifyItems = 'end'
+        style.order = -1
+        break
+      case 12: this.reverseStyle.position = 'relative'
+        style.position = 'absolute'
+        style.top = '50%'
+        style.left = '50%'
+        style.transform = 'translate(-50%, -50%)'
+        break
+      default:
+        console.log('none')
+    }
+    // console.log("style||",style)
+    this.labelStyle = style
   }
 
   /**
@@ -128,6 +213,11 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
       display = controlProp.Visible ? 'inline-block' : 'none'
     } else {
       display = 'inline-block'
+    }
+    this.reverseStyle.justifyContent = 'center'
+    if (controlProp.Picture) {
+      display = 'flex'
+      this.positionLogo(controlProp.PicturePosition)
     }
     return {
       ...(!controlProp.AutoSize && this.renderSize),
@@ -172,12 +262,12 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
       whiteSpace: controlProp.WordWrap ? 'pre-wrap' : 'pre',
       wordBreak: controlProp.WordWrap ? 'break-all' : 'normal',
       paddingLeft: controlProp.AutoSize ? '0px' : '0px',
-      paddingRight: controlProp.WordWrap ? '0px' : '6px',
-      backgroundImage: `url(${controlProp.Picture})`,
-      backgroundRepeat: this.getRepeat,
-      backgroundPosition: controlProp.Picture ? this.getPosition : '',
-      backgroundPositionX: controlProp.Picture ? this.getPositionX : '',
-      backgroundPositionY: controlProp.Picture ? this.getPositionY : ''
+      paddingRight: controlProp.WordWrap ? '0px' : '6px'
+      // backgroundImage: `url(${controlProp.Picture})`,
+      // backgroundRepeat: this.getRepeat,
+      // backgroundPosition: controlProp.Picture ? this.getPosition : '',
+      // backgroundPositionX: controlProp.Picture ? this.getPositionX : '',
+      // backgroundPositionY: controlProp.Picture ? this.getPositionY : ''
     }
   }
   /**
@@ -226,6 +316,44 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
     }
   }
 
+    @Watch('properties.Height')
+  updateImageSizeHeight () {
+    const  imgStyle={
+      width:'auto',
+      height:'auto'
+    }
+    if (this.properties.Picture) {
+      Vue.nextTick(() => {
+      const imgProp = document.getElementById('img')
+      console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
+      if (this.properties.Height! < imgProp!.clientHeight) {
+          imgStyle.height = '-webkit-fill-available'
+          imgStyle.width = '100%'
+
+      }
+      })
+    }
+      this.imageProperty = imgStyle
+  }
+  @Watch('properties.Width')
+  updateImageSizeWidth () {
+    const  imgStyle={
+      width:'auto',
+      height:'auto'
+    }
+    if (this.properties.Picture) {
+      Vue.nextTick(() => {
+      const imgProp = document.getElementById('img')
+      console.log('imgSixe||', imgProp!.clientHeight,imgProp!.clientWidth)
+      if (this.properties.Width! < imgProp!.clientWidth) {
+          imgStyle.width = '100%'
+          imgStyle.height = '-webkit-fill-available'
+      }
+      })
+    }
+      this.imageProperty = imgStyle
+  }
+
   /**
    * @description mounted initializes the values which are required for the component
    */
@@ -249,8 +377,14 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
   height: 0px;
   left: 0px;
   top: 0px;
+  align-items: center;
+  justify-content: center;
 }
 .commandbutton[runmode]:active {
   border-style: outset !important;
+}
+#logo{
+ display: inline-flex;
+ justify-content: center;
 }
 </style>
