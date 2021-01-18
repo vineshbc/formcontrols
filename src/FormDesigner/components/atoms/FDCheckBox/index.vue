@@ -402,7 +402,7 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
       Vue.nextTick(() => {
       const imgProp = document.getElementById('img')
       if (this.properties.Height! < imgProp!.clientHeight) {
-          imgStyle.height = '-webkit-fill-available'
+          // imgStyle.height = '-webkit-fill-available'
           imgStyle.width = '100%'
 
       }
@@ -421,7 +421,7 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
       const imgProp = document.getElementById('img')
       if (this.properties.Width! < imgProp!.clientWidth) {
           imgStyle.width = '100%'
-          imgStyle.height = '-webkit-fill-available'
+          // imgStyle.height = '-webkit-fill-available'
       }
       })
     }
