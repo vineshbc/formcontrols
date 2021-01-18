@@ -54,13 +54,17 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
   isContentEditable: boolean = false;
   labelStyle = {}
   reverseStyle = {
-    display: '',
-    flexDirection: '',
-    justifyItems: '',
-    position: '',
-    justifyContent: 'center'
+   display : '',
+   flexDirection : '',
+   justifyItems : '',
+   position:'',
+   justifyContent:'center',
+   alignItems: '',
+   width:''
   }
-  imageProperty={}
+  imageProperty = {
+    height:'fit-content'
+  }
   /**
    * @description getDisableValue checks for the RunMode of the control and then returns after checking for the Enabled
    * and the Locked property
@@ -111,6 +115,7 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
       height:'auto'
       }
       this.imageProperty = imgStyle
+            this.positionLogo(this.properties.PicturePosition)
       this.$nextTick(() => {
         this.updateDataModel({
           propertyName: 'Height',
@@ -124,72 +129,90 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
     }
   }
 
-  positionLogo (value:any) {
-    let style = {
-      order: Number(),
+  positionLogo(value:any){
+      let style = {
+        order: Number(),
+        alignItems: '',
+        transform:'',
+        top:'',
+        left:'',
+        position:'',
+        display:'inline-flex',
+        width: '',
+        justifyContent:''
+      }
+      this.reverseStyle = {
+      display : '',
+      flexDirection : '',
+      justifyItems : '',
+      position:'',
+      justifyContent:'center',
       alignItems: '',
-      transform: '',
-      top: '',
-      left: '',
-      position: '',
-      display: 'inline-flex'
-    }
-    this.reverseStyle = {
-      display: '',
-      flexDirection: '',
-      justifyItems: '',
-      position: '',
-      justifyContent: 'center'
-    }
-    this.reverseStyle.display = 'flex'
-    switch (value) {
-      case 0: break
-      case 1:style.alignItems = 'center'
+      width:''
+      }
+      this.reverseStyle.display = 'flex'
+      switch(value) {
+        case 0: 
         break
-      case 2:style.alignItems = 'flex-end'
+        case 1:style.alignItems = 'center'
+        this.reverseStyle.alignItems = 'center'
         break
-      case 3: this.reverseStyle.flexDirection = 'row-reverse'
+        case 2:style.alignItems = 'flex-end'
+        this.reverseStyle.alignItems = 'flex-end'
         break
-      case 4:
+        case 3: this.reverseStyle.flexDirection = 'row-reverse'
+        break
+        case 4:
         this.reverseStyle.flexDirection = 'row-reverse'
         style.alignItems = 'center'
+        this.reverseStyle.alignItems = 'center'
         break
-      case 5:
+        case 5:
         this.reverseStyle.flexDirection = 'row-reverse'
         style.alignItems = 'flex-end'
+        this.reverseStyle.alignItems = 'flex-end'
         break
-      case 6:
+        case 6:
         this.reverseStyle.display = 'grid'
         break
-      case 7: this.reverseStyle.display = 'grid'
+        case 7:  
+        this.reverseStyle.display = 'grid'
         this.reverseStyle.justifyItems = 'center'
         break
-      case 8: this.reverseStyle.display = 'grid'
+        case 8:  
+        this.reverseStyle.display = 'grid'
         this.reverseStyle.justifyItems = 'end'
         break
-      case 9: this.reverseStyle.display = 'grid'
-        style.order = -1
+        case 9:  
+        this.reverseStyle.display = 'grid'
+        style.order= -1
         break
-      case 10: this.reverseStyle.display = 'grid'
+        case 10:  
+        this.reverseStyle.display = 'grid'
         this.reverseStyle.justifyItems = 'center'
         style.order = -1
         break
-      case 11: this.reverseStyle.display = 'grid'
+        case 11:  
+        this.reverseStyle.display = 'grid'
         this.reverseStyle.justifyItems = 'end'
-        style.order = -1
+        style.order= -1
         break
-      case 12: this.reverseStyle.position = 'relative'
-        style.position = 'absolute'
-        style.top = '50%'
-        style.left = '50%'
-        style.transform = 'translate(-50%, -50%)'
+        case 12:  
+        this.reverseStyle.position = 'relative'
+        this.reverseStyle.width = '100%'
+        style.position = 'absolute',
+        style.top = '50%',
+        style.left = '50%',
+        style.transform ='translate(-50%, -50%)'
+        style.justifyContent = 'center'
+        style.width = '100%'
         break
-      default:
-        console.log('none')
+        default:
+          console.log('none')
+      }
+      // console.log("style||",style)
+      this.labelStyle = style 
     }
-    // console.log("style||",style)
-    this.labelStyle = style
-  }
 
   /**
    * @description style object is passed to :style attribute in button tag
@@ -215,9 +238,14 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
       display = 'inline-block'
     }
     this.reverseStyle.justifyContent = 'center'
-    if (controlProp.Picture) {
+    let alignItems = 'normal'
+    if(controlProp.Picture){
       display = 'flex'
       this.positionLogo(controlProp.PicturePosition)
+      let labelStyle = document.getElementById('logo')
+      if (this.properties.Height! > labelStyle!.clientHeight) {
+         alignItems = 'center'
+      }
     }
     return {
       ...(!controlProp.AutoSize && this.renderSize),
@@ -262,7 +290,8 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
       whiteSpace: controlProp.WordWrap ? 'pre-wrap' : 'pre',
       wordBreak: controlProp.WordWrap ? 'break-all' : 'normal',
       paddingLeft: controlProp.AutoSize ? '0px' : '0px',
-      paddingRight: controlProp.WordWrap ? '0px' : '6px'
+      paddingRight: controlProp.WordWrap ? '0px' : '6px',
+      alignItems: alignItems
       // backgroundImage: `url(${controlProp.Picture})`,
       // backgroundRepeat: this.getRepeat,
       // backgroundPosition: controlProp.Picture ? this.getPosition : '',
@@ -316,20 +345,21 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
     }
   }
 
-    @Watch('properties.Height')
+
+  @Watch('properties.Height')
   updateImageSizeHeight () {
     const  imgStyle={
       width:'auto',
-      height:'auto'
+      height:'fit-content'
     }
     if (this.properties.Picture) {
       Vue.nextTick(() => {
       const imgProp = document.getElementById('img')
-      console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
+      // console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
       if (this.properties.Height! < imgProp!.clientHeight) {
-          imgStyle.height = '-webkit-fill-available'
           imgStyle.width = '100%'
-
+          imgStyle.height = 'auto'
+          this.reverseStyle.display = 'contents'
       }
       })
     }
@@ -339,15 +369,15 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
   updateImageSizeWidth () {
     const  imgStyle={
       width:'auto',
-      height:'auto'
+      height:'fit-content'
     }
     if (this.properties.Picture) {
       Vue.nextTick(() => {
       const imgProp = document.getElementById('img')
-      console.log('imgSixe||', imgProp!.clientHeight,imgProp!.clientWidth)
       if (this.properties.Width! < imgProp!.clientWidth) {
           imgStyle.width = '100%'
-          imgStyle.height = '-webkit-fill-available'
+          imgStyle.height = 'auto'
+          this.reverseStyle.display = 'contents'
       }
       })
     }

@@ -118,9 +118,13 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
    flexDirection : '',
    justifyItems : '',
    position:'',
-   justifyContent:'center'
+   justifyContent:'center',
+   alignItems: '',
+   width:''
   }
-  imageProperty={}
+  imageProperty={
+    height:'fit-content'
+  }
   get controlStyleObj () {
     const controlProp = this.properties
     return {
@@ -268,6 +272,13 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
     } else {
       display = 'grid'
     }
+    let alignItems = 'center'
+    if(controlProp.Picture){
+      let labelStyle = document.getElementById('logo')
+      if (this.properties.Height! < labelStyle!.clientHeight) {
+         alignItems = 'normal'
+      }
+    }
 
     return {
       left: `${controlProp.Left}px`,
@@ -317,9 +328,10 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
       gridTemplateColumns: controlProp.Alignment === 1 ? '12px auto' : 'auto 12px',
       gridTemplateRows: '100%',
       gap: '2px',
-      alignItems: font.FontSize! > 17 ? 'center' : '',
+      // alignItems: font.FontSize! > 17 ? 'center' : '',
       alignContent: 'center',
-      boxShadow: 'none'
+      boxShadow: 'none',
+      alignItems: alignItems
     }
   }
 
@@ -396,15 +408,16 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
   updateImageSizeHeight () {
     const  imgStyle={
       width:'auto',
-      height:'auto'
+      height:'fit-content'
     }
     if (this.properties.Picture) {
       Vue.nextTick(() => {
       const imgProp = document.getElementById('img')
+      // console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
       if (this.properties.Height! < imgProp!.clientHeight) {
-          // imgStyle.height = '-webkit-fill-available'
           imgStyle.width = '100%'
-
+          imgStyle.height = 'auto'
+          this.reverseStyle.display = 'contents'
       }
       })
     }
@@ -414,14 +427,15 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
   updateImageSizeWidth () {
     const  imgStyle={
       width:'auto',
-      height:'auto'
+      height:'fit-content'
     }
     if (this.properties.Picture) {
       Vue.nextTick(() => {
       const imgProp = document.getElementById('img')
       if (this.properties.Width! < imgProp!.clientWidth) {
           imgStyle.width = '100%'
-          // imgStyle.height = '-webkit-fill-available'
+          imgStyle.height = 'auto'
+          this.reverseStyle.display = 'contents'
       }
       })
     }
@@ -453,6 +467,7 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
       height:'auto'
       }
       this.imageProperty = imgStyle
+      this.positionLogo(this.properties.PicturePosition)
       this.$nextTick(() => {
         let divRef: HTMLDivElement = this.autoSizecheckbox
         const offsetWidth = (divRef.childNodes[0] as HTMLSpanElement)
@@ -522,32 +537,40 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
         top:'',
         left:'',
         position:'',
-        display:'inline-flex'
+        display:'inline-flex',
+        width: '',
+        justifyContent:''
       }
       this.reverseStyle = {
       display : '',
       flexDirection : '',
       justifyItems : '',
       position:'',
-      justifyContent:'center'
+      justifyContent:'center',
+      alignItems: '',
+      width:''
       }
       this.reverseStyle.display = 'flex'
       switch(value) {
         case 0: 
         break
         case 1:style.alignItems = 'center'
+        this.reverseStyle.alignItems = 'center'
         break
         case 2:style.alignItems = 'flex-end'
+        this.reverseStyle.alignItems = 'flex-end'
         break
         case 3: this.reverseStyle.flexDirection = 'row-reverse'
         break
         case 4:
         this.reverseStyle.flexDirection = 'row-reverse'
         style.alignItems = 'center'
+        this.reverseStyle.alignItems = 'center'
         break
         case 5:
         this.reverseStyle.flexDirection = 'row-reverse'
         style.alignItems = 'flex-end'
+        this.reverseStyle.alignItems = 'flex-end'
         break
         case 6:
         this.reverseStyle.display = 'grid'
@@ -576,15 +599,17 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
         break
         case 12:  
         this.reverseStyle.position = 'relative'
+        this.reverseStyle.width = '100%'
         style.position = 'absolute',
         style.top = '50%',
         style.left = '50%',
         style.transform ='translate(-50%, -50%)'
+        style.justifyContent = 'center'
+        style.width = '100%'
         break
         default:
           console.log('none')
       }
-      console.log("style||",style)
       this.labelStyle = style 
     }
 }

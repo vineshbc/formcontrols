@@ -60,9 +60,13 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
    flexDirection : '',
    justifyItems : '',
    position:'',
-   justifyContent:'center'
+   justifyContent:'center',
+   alignItems: '',
+   width:''
   }
-  imageProperty={}
+  imageProperty = {
+    height:'fit-content'
+  }
   /**
    * @description getDisableValue checks for the RunMode of the control and then returns after checking for the Enabled
    * and the Locked property
@@ -144,8 +148,13 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
     } else {
       display = 'inline-block'
     }
+    let alignItems = 'normal'
     if(controlProp.Picture){
       display = 'flex'
+      let labelStyle = document.getElementById('logo')
+      if (this.properties.Height! > labelStyle!.clientHeight) {
+         alignItems = 'center'
+      }
     }
     return {
       left: `${controlProp.Left}px`,
@@ -215,7 +224,8 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
       borderTopColor: controlProp.Value !== 'True' ? 'white !important' : '',
       borderLeftColor: controlProp.Value !== 'True' ? 'white !important' : '',
       borderBottomColor: controlProp.Value === 'True' ? 'white !important' : '',
-      borderRightColor: controlProp.Value === 'True' ? 'white !important' : ''
+      borderRightColor: controlProp.Value === 'True' ? 'white !important' : '',
+      alignItems: alignItems
     }
   }
 
@@ -265,20 +275,20 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
     }
   }
 
-    @Watch('properties.Height')
+  @Watch('properties.Height')
   updateImageSizeHeight () {
     const  imgStyle={
       width:'auto',
-      height:'auto'
+      height:'fit-content'
     }
     if (this.properties.Picture) {
       Vue.nextTick(() => {
       const imgProp = document.getElementById('img')
-      console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
+      // console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
       if (this.properties.Height! < imgProp!.clientHeight) {
-          imgStyle.height = '-webkit-fill-available'
           imgStyle.width = '100%'
-
+          imgStyle.height = 'auto'
+          this.reverseStyle.display = 'contents'
       }
       })
     }
@@ -288,15 +298,15 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
   updateImageSizeWidth () {
     const  imgStyle={
       width:'auto',
-      height:'auto'
+      height:'fit-content'
     }
     if (this.properties.Picture) {
       Vue.nextTick(() => {
       const imgProp = document.getElementById('img')
-      console.log('imgSixe||', imgProp!.clientHeight,imgProp!.clientWidth)
       if (this.properties.Width! < imgProp!.clientWidth) {
           imgStyle.width = '100%'
-          imgStyle.height = '-webkit-fill-available'
+          imgStyle.height = 'auto'
+          this.reverseStyle.display = 'contents'
       }
       })
     }
@@ -315,6 +325,7 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
       width:'auto',
       height:'auto'
     }
+    this.positionLogo(this.properties.PicturePosition)
       this.imageProperty = imgStyle
       this.$nextTick(() => {
         this.updateDataModel({
@@ -333,8 +344,7 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
     }
   }
 
-    positionLogo(value:any){
-    console.log("value||",value)
+  positionLogo(value:any){
       let style = {
         order: Number(),
         alignItems: '',
@@ -342,32 +352,40 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
         top:'',
         left:'',
         position:'',
-        display:'inline-flex'
+        display:'inline-flex',
+        width: '',
+        justifyContent:''
       }
       this.reverseStyle = {
       display : '',
       flexDirection : '',
       justifyItems : '',
       position:'',
-      justifyContent:'center'
+      justifyContent:'center',
+      alignItems: '',
+      width:''
       }
       this.reverseStyle.display = 'flex'
       switch(value) {
         case 0: 
         break
         case 1:style.alignItems = 'center'
+        this.reverseStyle.alignItems = 'center'
         break
         case 2:style.alignItems = 'flex-end'
+        this.reverseStyle.alignItems = 'flex-end'
         break
         case 3: this.reverseStyle.flexDirection = 'row-reverse'
         break
         case 4:
         this.reverseStyle.flexDirection = 'row-reverse'
         style.alignItems = 'center'
+        this.reverseStyle.alignItems = 'center'
         break
         case 5:
         this.reverseStyle.flexDirection = 'row-reverse'
         style.alignItems = 'flex-end'
+        this.reverseStyle.alignItems = 'flex-end'
         break
         case 6:
         this.reverseStyle.display = 'grid'
@@ -396,10 +414,13 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
         break
         case 12:  
         this.reverseStyle.position = 'relative'
+        this.reverseStyle.width = '100%'
         style.position = 'absolute',
         style.top = '50%',
         style.left = '50%',
         style.transform ='translate(-50%, -50%)'
+        style.justifyContent = 'center'
+        style.width = '100%'
         break
         default:
           console.log('none')

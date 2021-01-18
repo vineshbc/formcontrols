@@ -88,8 +88,13 @@ export default class FDLabel extends Mixins(FdControlVue) {
     } else {
       display = 'inline-block'
     }
+    let alignItems = 'normal'
     if(controlProp.Picture){
       display = 'flex'
+      let labelStyle = document.getElementById('logo')
+      if (this.properties.Height! > labelStyle!.clientHeight) {
+         alignItems = 'center'
+      }
     }
     return {
       ...(!controlProp.AutoSize && this.renderSize),
@@ -139,7 +144,8 @@ export default class FDLabel extends Mixins(FdControlVue) {
       // backgroundPosition: this.getPosition,
       // backgroundPositionX: this.getPositionX,
       // backgroundPositionY: this.getPositionY,
-      display: display
+      display: display,
+      alignItems: alignItems
     }
   }
   /**
@@ -166,7 +172,8 @@ export default class FDLabel extends Mixins(FdControlVue) {
       // console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
       if (this.properties.Height! < imgProp!.clientHeight) {
           imgStyle.width = '100%'
-
+          imgStyle.height = 'auto'
+          this.reverseStyle.display = 'contents'
       }
       })
     }
@@ -183,6 +190,8 @@ export default class FDLabel extends Mixins(FdControlVue) {
       const imgProp = document.getElementById('img')
       if (this.properties.Width! < imgProp!.clientWidth) {
           imgStyle.width = '100%'
+          imgStyle.height = 'auto'
+          this.reverseStyle.display = 'contents'
       }
       })
     }
@@ -234,6 +243,7 @@ export default class FDLabel extends Mixins(FdControlVue) {
       width:'auto',
       height:'auto'
       }
+    this.positionLogo(this.properties.PicturePosition)
       this.imageProperty = imgStyle
       this.$nextTick(() => {
         this.updateDataModel({

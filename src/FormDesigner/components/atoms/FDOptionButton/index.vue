@@ -95,6 +95,7 @@
 </template>
 
 <script lang="ts">
+/*eslint-disable */
 import { Component, Ref, Mixins, Watch, Vue } from 'vue-property-decorator'
 import FdControlVue from '@/api/abstract/FormDesigner/FdControlVue'
 import FDEditableText from '@/FormDesigner/components/atoms/FDEditableText/index.vue'
@@ -118,9 +119,13 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
     flexDirection: '',
     justifyItems: '',
     position: '',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    alignItems: '',
+    width: ''
   }
-  imageProperty = {}
+  imageProperty={
+    height:'fit-content'
+  }
   get controlStyleObj () {
     const controlProp = this.properties
     return {
@@ -274,6 +279,13 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
     } else {
       display = 'grid'
     }
+    let alignItems = 'center'
+    if(controlProp.Picture){
+      let labelStyle = document.getElementById('logo')
+      if (this.properties.Height! < labelStyle!.clientHeight) {
+         alignItems = 'normal'
+      }
+    }
     return {
       left: `${controlProp.Left}px`,
       width: `${controlProp.Width}px`,
@@ -321,9 +333,10 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
       gridTemplateColumns: controlProp.Alignment === 1 ? '12px auto' : 'auto 12px',
       gridTemplateRows: '100%',
       gap: '2px',
-      alignItems: font.FontSize! > 17 ? 'center' : '',
+      // alignItems: font.FontSize! > 17 ? 'center' : '',
       alignContent: 'center',
-      boxShadow: 'none'
+      boxShadow: 'none',
+      alignItems: alignItems
     }
   }
 
@@ -434,6 +447,7 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
         width: 'auto',
         height: 'auto'
       }
+      this.positionLogo(this.properties.PicturePosition)
       this.imageProperty = imgStyle
       this.$nextTick(() => {
         let divRef: HTMLDivElement = this.autoSizeOptionButton
@@ -463,38 +477,43 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
     }
   }
 
-    @Watch('properties.Height')
+  @Watch('properties.Height')
   updateImageSizeHeight () {
-    const imgStyle = {
-      width: 'auto',
-      height: 'auto'
+    const  imgStyle={
+      width:'auto',
+      height:'fit-content'
     }
     if (this.properties.Picture) {
       Vue.nextTick(() => {
-        const imgProp = document.getElementById('img')
-        if (this.properties.Height! < imgProp!.clientHeight) {
+      const imgProp = document.getElementById('img')
+      // console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
+      if (this.properties.Height! < imgProp!.clientHeight) {
           imgStyle.width = '100%'
-        }
+          imgStyle.height = 'auto'
+          this.reverseStyle.display = 'contents'
+      }
       })
     }
-    this.imageProperty = imgStyle
+      this.imageProperty = imgStyle
   }
   @Watch('properties.Width')
-    updateImageSizeWidth () {
-      const imgStyle = {
-        width: 'auto',
-        height: 'auto'
-      }
-      if (this.properties.Picture) {
-        Vue.nextTick(() => {
-          const imgProp = document.getElementById('img')
-          if (this.properties.Width! < imgProp!.clientWidth) {
-            imgStyle.width = '100%'
-          }
-        })
-      }
-      this.imageProperty = imgStyle
+  updateImageSizeWidth () {
+    const  imgStyle={
+      width:'auto',
+      height:'fit-content'
     }
+    if (this.properties.Picture) {
+      Vue.nextTick(() => {
+      const imgProp = document.getElementById('img')
+      if (this.properties.Width! < imgProp!.clientWidth) {
+          imgStyle.width = '100%'
+          imgStyle.height = 'auto'
+          this.reverseStyle.display = 'contents'
+      }
+      })
+    }
+      this.imageProperty = imgStyle
+  }
 
   /**
    * @description  sets controlSource if present and updates Value property
@@ -515,72 +534,90 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
       (this.optionBtnSpanRef.$el as HTMLSpanElement).focus()
     }
   }
-  positionLogo (value:any) {
-    let style = {
-      order: Number(),
+  positionLogo(value:any){
+      let style = {
+        order: Number(),
+        alignItems: '',
+        transform:'',
+        top:'',
+        left:'',
+        position:'',
+        display:'inline-flex',
+        width: '',
+        justifyContent:''
+      }
+      this.reverseStyle = {
+      display : '',
+      flexDirection : '',
+      justifyItems : '',
+      position:'',
+      justifyContent:'center',
       alignItems: '',
-      transform: '',
-      top: '',
-      left: '',
-      position: '',
-      display: 'inline-flex'
-    }
-    this.reverseStyle = {
-      display: '',
-      flexDirection: '',
-      justifyItems: '',
-      position: '',
-      justifyContent: 'center'
-    }
-    this.reverseStyle.display = 'flex'
-    switch (value) {
-      case 0: break
-      case 1:style.alignItems = 'center'
+      width:''
+      }
+      this.reverseStyle.display = 'flex'
+      switch(value) {
+        case 0: 
         break
-      case 2:style.alignItems = 'flex-end'
+        case 1:style.alignItems = 'center'
+        this.reverseStyle.alignItems = 'center'
         break
-      case 3: this.reverseStyle.flexDirection = 'row-reverse'
+        case 2:style.alignItems = 'flex-end'
+        this.reverseStyle.alignItems = 'flex-end'
         break
-      case 4:
+        case 3: this.reverseStyle.flexDirection = 'row-reverse'
+        break
+        case 4:
         this.reverseStyle.flexDirection = 'row-reverse'
         style.alignItems = 'center'
+        this.reverseStyle.alignItems = 'center'
         break
-      case 5:
+        case 5:
         this.reverseStyle.flexDirection = 'row-reverse'
         style.alignItems = 'flex-end'
+        this.reverseStyle.alignItems = 'flex-end'
         break
-      case 6:
+        case 6:
         this.reverseStyle.display = 'grid'
         break
-      case 7: this.reverseStyle.display = 'grid'
+        case 7:  
+        this.reverseStyle.display = 'grid'
         this.reverseStyle.justifyItems = 'center'
         break
-      case 8: this.reverseStyle.display = 'grid'
+        case 8:  
+        this.reverseStyle.display = 'grid'
         this.reverseStyle.justifyItems = 'end'
         break
-      case 9: this.reverseStyle.display = 'grid'
-        style.order = -1
+        case 9:  
+        this.reverseStyle.display = 'grid'
+        style.order= -1
         break
-      case 10: this.reverseStyle.display = 'grid'
+        case 10:  
+        this.reverseStyle.display = 'grid'
         this.reverseStyle.justifyItems = 'center'
         style.order = -1
         break
-      case 11: this.reverseStyle.display = 'grid'
+        case 11:  
+        this.reverseStyle.display = 'grid'
         this.reverseStyle.justifyItems = 'end'
-        style.order = -1
+        style.order= -1
         break
-      case 12: this.reverseStyle.position = 'relative'
-        style.position = 'absolute'
-        style.top = '50%'
-        style.left = '50%'
-        style.transform = 'translate(-50%, -50%)'
+        case 12:  
+        this.reverseStyle.position = 'relative'
+        this.reverseStyle.width = '100%'
+        style.position = 'absolute',
+        style.top = '50%',
+        style.left = '50%',
+        style.transform ='translate(-50%, -50%)'
+        style.justifyContent = 'center'
+        style.width = '100%'
         break
-      default:
-        console.log('none')
+        default:
+          console.log('none')
+      }
+      // console.log("style||",style)
+      this.labelStyle = style 
     }
-    // console.log("style||",style)
-    this.labelStyle = style
-  }
 }
 </script>
 
