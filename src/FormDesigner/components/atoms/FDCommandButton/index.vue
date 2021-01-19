@@ -110,12 +110,14 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
    */
   updateAutoSize () {
     if (this.properties.AutoSize === true) {
-    const  imgStyle={
-      width:'auto',
-      height:'auto'
+      const  imgStyle={
+      width:'fit-content',
+      height:'fit-content'
       }
       this.imageProperty = imgStyle
-            this.positionLogo(this.properties.PicturePosition)
+      if(this.properties.Picture){
+      this.positionLogo(this.properties.PicturePosition)
+      }
       this.$nextTick(() => {
         this.updateDataModel({
           propertyName: 'Height',
@@ -213,6 +215,20 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
       // console.log("style||",style)
       this.labelStyle = style 
     }
+  pictureSize(){
+    const  imgStyle={
+      width:'fit-content',
+      height:'fit-content'
+    }
+    if (this.properties.Picture) {
+        Vue.nextTick(() => {
+          const imgProp = document.getElementById('img')
+           imgStyle.width = this.properties.Width! < imgProp!.clientWidth ? `${this.properties.Width}px` : 'fit-content'
+           imgStyle.height = this.properties.Height! < imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'
+        })
+    }
+    this.imageProperty = imgStyle
+  }
 
   /**
    * @description style object is passed to :style attribute in button tag
@@ -221,6 +237,7 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
    */
   protected get styleObj (): Partial<CSSStyleDeclaration> {
     const controlProp = this.properties
+    this.pictureSize()
     const font: font = controlProp.Font
       ? controlProp.Font
       : {
@@ -344,46 +361,6 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
       this.updateAutoSize()
     }
   }
-
-
-  @Watch('properties.Height')
-  updateImageSizeHeight () {
-    const  imgStyle={
-      width:'auto',
-      height:'fit-content'
-    }
-    if (this.properties.Picture) {
-      Vue.nextTick(() => {
-      const imgProp = document.getElementById('img')
-      // console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
-      if (this.properties.Height! < imgProp!.clientHeight) {
-          imgStyle.width = '100%'
-          imgStyle.height = 'auto'
-          this.reverseStyle.display = 'contents'
-      }
-      })
-    }
-      this.imageProperty = imgStyle
-  }
-  @Watch('properties.Width')
-  updateImageSizeWidth () {
-    const  imgStyle={
-      width:'auto',
-      height:'fit-content'
-    }
-    if (this.properties.Picture) {
-      Vue.nextTick(() => {
-      const imgProp = document.getElementById('img')
-      if (this.properties.Width! < imgProp!.clientWidth) {
-          imgStyle.width = '100%'
-          imgStyle.height = 'auto'
-          this.reverseStyle.display = 'contents'
-      }
-      })
-    }
-      this.imageProperty = imgStyle
-  }
-
   /**
    * @description mounted initializes the values which are required for the component
    */

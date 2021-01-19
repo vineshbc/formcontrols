@@ -7,7 +7,7 @@
     :tabindex="properties.TabIndex"
     @keydown.enter.prevent="setContentEditable($event, true)"
   >
-  <label class="control" :style="controlStyleObj" v-if="properties.Alignment === 1">
+  <label class="control" :style="controlStyleObj">
     <input
         @change="handleChange($event, optionBtnRef)"
         @click="SetValue()"
@@ -23,7 +23,6 @@
         ref="spanRef"
       ></span
     ></label>
-    <div  v-if="properties.Alignment === 1">
       <div id="logo" :style="reverseStyle">
       <img v-if="properties.Picture" id="img" :src="properties.Picture" :style="imageProperty">
         <div ref="divAutoSize"
@@ -49,49 +48,6 @@
         </FDEditableText>
       </div>
     </div>
-    <div  v-if="properties.Alignment === 0">
-      <div id="logo" :style="reverseStyle">
-      <img v-if="properties.Picture" id="img" :src="properties.Picture" :style="imageProperty">
-        <div ref="divAutoSize"
-          v-if="!syncIsEditMode || isRunMode"
-          @click="isRunMode && makeChecked($event)"
-          :style="labelStyle"
-        >
-          <span>{{ computedCaption.afterbeginCaption }}</span>
-          <span class="spanClass">{{
-            computedCaption.acceleratorCaption
-          }}</span>
-          <span>{{ computedCaption.beforeendCaption }}</span>
-        </div>
-        <FDEditableText
-          v-else
-          :editable="isRunMode === false && syncIsEditMode"
-          :style="labelStyle"
-          :caption="properties.Caption"
-          ref="optionBtnSpanRef"
-          @updateCaption="updateCaption"
-          @releaseEditMode="releaseEditMode"
-        >
-        </FDEditableText>
-      </div>
-    </div>
-    <label class="control" :style="controlStyleObj" v-if="properties.Alignment === 0">
-    <input
-        @change="handleChange($event, optionBtnRef)"
-        @click="SetValue()"
-        ref="optBtnInput"
-        :name="properties.Name"
-        :tabindex="properties.TabIndex"
-        :disabled="getDisableValue"
-        type="radio"
-        class="control-input visually-hidden" />
-      <span
-        class="control-indicator"
-        :style="controlIndicatorStyleObj"
-        ref="spanRef"
-      ></span
-    ></label>
-  </div>
 </template>
 
 <script lang="ts">
@@ -129,8 +85,9 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
   get controlStyleObj () {
     const controlProp = this.properties
     return {
-      position: 'sticky',
-      top: `${controlProp.Height! / 2 - 10}px`
+        order : controlProp.Alignment === 1 ? '0' : '1',
+      // position: 'sticky',
+      // top: `${controlProp.Height! / 2 - 10}px`
     }
   }
 
@@ -257,6 +214,7 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
    */
   get cssStyleProperty () {
     const controlProp = this.properties
+    this.pictureSize()
     this.reverseStyle.justifyContent = 'center'
     if (!controlProp.Picture) {
       this.reverseStyle.justifyContent = controlProp.TextAlign === 0 ? 'flex-start' : controlProp.TextAlign === 1 ? 'center' : 'flex-end'
@@ -444,8 +402,8 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
   updateAutoSize () {
     if (this.properties.AutoSize) {
       const imgStyle = {
-        width: 'auto',
-        height: 'auto'
+      width:'fit-content',
+      height:'fit-content'
       }
       this.positionLogo(this.properties.PicturePosition)
       this.imageProperty = imgStyle
@@ -476,45 +434,6 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
       this.updateAutoSize()
     }
   }
-
-  @Watch('properties.Height')
-  updateImageSizeHeight () {
-    const  imgStyle={
-      width:'auto',
-      height:'fit-content'
-    }
-    if (this.properties.Picture) {
-      Vue.nextTick(() => {
-      const imgProp = document.getElementById('img')
-      // console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
-      if (this.properties.Height! < imgProp!.clientHeight) {
-          imgStyle.width = '100%'
-          imgStyle.height = 'auto'
-          this.reverseStyle.display = 'contents'
-      }
-      })
-    }
-      this.imageProperty = imgStyle
-  }
-  @Watch('properties.Width')
-  updateImageSizeWidth () {
-    const  imgStyle={
-      width:'auto',
-      height:'fit-content'
-    }
-    if (this.properties.Picture) {
-      Vue.nextTick(() => {
-      const imgProp = document.getElementById('img')
-      if (this.properties.Width! < imgProp!.clientWidth) {
-          imgStyle.width = '100%'
-          imgStyle.height = 'auto'
-          this.reverseStyle.display = 'contents'
-      }
-      })
-    }
-      this.imageProperty = imgStyle
-  }
-
   /**
    * @description  sets controlSource if present and updates Value property
    * @function controlSource
@@ -618,6 +537,21 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
       // console.log("style||",style)
       this.labelStyle = style 
     }
+  pictureSize(){
+    const  imgStyle={
+      width:'fit-content',
+      height:'fit-content'
+    }
+    if (this.properties.Picture) {
+        Vue.nextTick(() => {
+          const imgProp = document.getElementById('img')
+          const logoProp = document.getElementById('logo-main')
+           imgStyle.width = this.properties.Width! < imgProp!.clientWidth ? `${this.properties.Width!-15}px` : 'fit-content'
+           imgStyle.height = this.properties.Height! < imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'
+        })
+    }
+   this.imageProperty = imgStyle
+  }
 }
 </script>
 
@@ -679,8 +613,9 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
 
 .control {
   display: inline-flex;
-  position: sticky;
-  top: 47%;
+  /* position: sticky;
+  top: 47%; */
+  align-items: center;
 }
 
 .control-indicator {
@@ -708,4 +643,5 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
  display: inline-flex;
  justify-content: center;
 }
+
 </style>

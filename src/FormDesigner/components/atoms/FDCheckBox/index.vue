@@ -7,7 +7,7 @@
     @keydown.enter.prevent="setContentEditable($event, true)"
     :tabindex="properties.TabIndex"
   >
-    <label class="control" :style="controlStyleObj" v-if="properties.Alignment === 1">
+    <label class="control" :style="controlStyleObj">
       <input
         @change="handleChange($event, checkboxInput)"
         ref="checkboxInput"
@@ -22,9 +22,8 @@
         ref="spanRef"
       ></span
     ></label>
-    <div  v-if="properties.Alignment === 1">
       <div id="logo" :style="reverseStyle">
-      <img v-if="properties.Picture" id="img" :src="properties.Picture" :style="imageProperty">
+      <img id="img" v-if="properties.Picture" :src="properties.Picture" :style="imageProperty">
         <div ref="divAutoSize"
           v-if="!syncIsEditMode || isRunMode"
           @click="isRunMode && makeChecked($event)"
@@ -48,49 +47,6 @@
         </FDEditableText>
       </div>
     </div>
-    <div  v-if="properties.Alignment === 0">
-      <div id="logo" :style="reverseStyle">
-      <img v-if="properties.Picture" id="img" :src="properties.Picture" :style="imageProperty">
-        <div
-          ref="divAutoSize"
-          v-if="!syncIsEditMode || isRunMode"
-          @click="isRunMode && makeChecked($event)"
-          :style="labelStyle"
-        >
-          <span>{{ computedCaption.afterbeginCaption }}</span>
-          <span class="spanStyle">{{
-            computedCaption.acceleratorCaption
-          }}</span>
-          <span>{{ computedCaption.beforeendCaption }}</span>
-        </div>
-        <FDEditableText
-          v-else
-          ref="checkBoxSpanRef"
-          :editable="isRunMode === false && syncIsEditMode"
-          :caption="properties.Caption"
-          :style="labelStyle"
-          @updateCaption="updateCaption"
-          @releaseEditMode="releaseEditMode"
-        >
-        </FDEditableText>
-      </div>
-    </div>
-    <label class="control" :style="controlStyleObj" v-if="properties.Alignment === 0">
-      <input
-        @change="handleChange($event, checkboxInput)"
-        ref="checkboxInput"
-        :name="properties.Name"
-        :tabindex="properties.TabIndex"
-        :disabled="getDisableValue"
-        type="checkbox"
-        class="control-input visually-hidden" />
-      <span
-        class="control-indicator"
-        :style="controlIndicatorStyleObj"
-        ref="spanRef"
-      ></span
-    ></label>
-  </div>
 </template>
 
 <script lang="ts">
@@ -128,8 +84,7 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
   get controlStyleObj () {
     const controlProp = this.properties
     return {
-      position: 'sticky',
-      top: `${controlProp.Height! / 2 - 10}px`
+      order : controlProp.Alignment === 1 ? '0' : '1',
     }
   }
   /**
@@ -249,6 +204,7 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
    */
   get cssStyleProperty () {
     const controlProp = this.properties
+    this.pictureSize()
     this.reverseStyle.justifyContent = "center"
     if(!controlProp.Picture){
     this.reverseStyle.justifyContent = 
@@ -404,43 +360,43 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
       })
     }
   }
-  @Watch('properties.Height')
-  updateImageSizeHeight () {
-    const  imgStyle={
-      width:'auto',
-      height:'fit-content'
-    }
-    if (this.properties.Picture) {
-      Vue.nextTick(() => {
-      const imgProp = document.getElementById('img')
-      // console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
-      if (this.properties.Height! < imgProp!.clientHeight) {
-          imgStyle.width = '100%'
-          imgStyle.height = 'auto'
-          this.reverseStyle.display = 'contents'
-      }
-      })
-    }
-      this.imageProperty = imgStyle
-  }
-  @Watch('properties.Width')
-  updateImageSizeWidth () {
-    const  imgStyle={
-      width:'auto',
-      height:'fit-content'
-    }
-    if (this.properties.Picture) {
-      Vue.nextTick(() => {
-      const imgProp = document.getElementById('img')
-      if (this.properties.Width! < imgProp!.clientWidth) {
-          imgStyle.width = '100%'
-          imgStyle.height = 'auto'
-          this.reverseStyle.display = 'contents'
-      }
-      })
-    }
-      this.imageProperty = imgStyle
-  }
+  // @Watch('properties.Height')
+  // updateImageSizeHeight () {
+  //   const  imgStyle={
+  //     width:'auto',
+  //     height:'fit-content'
+  //   }
+  //   if (this.properties.Picture) {
+  //     Vue.nextTick(() => {
+  //     const imgProp = document.getElementById('img')
+  //     // console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
+  //     if (this.properties.Height! < imgProp!.clientHeight) {
+  //         imgStyle.width = '100%'
+  //         imgStyle.height = 'auto'
+  //         this.reverseStyle.display = 'contents'
+  //     }
+  //     })
+  //   }
+  //     this.imageProperty = imgStyle
+  // }
+  // @Watch('properties.Width')
+  // updateImageSizeWidth () {
+  //   const  imgStyle={
+  //     width:'auto',
+  //     height:'fit-content'
+  //   }
+  //   if (this.properties.Picture) {
+  //     Vue.nextTick(() => {
+  //     const imgProp = document.getElementById('img')
+  //     if (this.properties.Width! < imgProp!.clientWidth) {
+  //         imgStyle.width = '100%'
+  //         imgStyle.height = 'auto'
+  //         this.reverseStyle.display = 'contents'
+  //     }
+  //     })
+  //   }
+  //     this.imageProperty = imgStyle
+  // }
   /**
    * @description style object is passed to :style attribute in tag
    * dynamically changing the styles of the component based on properties
@@ -463,11 +419,13 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
   updateAutoSize () {
     if (this.properties.AutoSize) {
       const  imgStyle={
-      width:'auto',
-      height:'auto'
+      width:'fit-content',
+      height:'fit-content'
       }
       this.imageProperty = imgStyle
+      if(this.properties.Picture){
       this.positionLogo(this.properties.PicturePosition)
+      }
       this.$nextTick(() => {
         let divRef: HTMLDivElement = this.autoSizecheckbox
         const offsetWidth = (divRef.childNodes[0] as HTMLSpanElement)
@@ -612,6 +570,21 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
       }
       this.labelStyle = style 
     }
+  pictureSize(){
+    const  imgStyle={
+      width:'fit-content',
+      height:'fit-content'
+    }
+    if (this.properties.Picture) {
+        Vue.nextTick(() => {
+          const imgProp = document.getElementById('img')
+          const logoProp = document.getElementById('logo-main')
+           imgStyle.width = this.properties.Width! < imgProp!.clientWidth ? `${this.properties.Width!-15}px` : 'fit-content'
+           imgStyle.height = this.properties.Height! < imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'
+        })
+    }
+   this.imageProperty = imgStyle
+  }
 }
 </script>
 
@@ -647,8 +620,9 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
 
 .control {
   display: inline-flex;
-  position: sticky;
-  top: 47%;
+  /* position: sticky;
+  top: 47%; */
+  align-items: center;
 }
 
 .control-indicator {
@@ -684,5 +658,9 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
 #logo{
  display: inline-flex;
  justify-content: center;
+}
+#logo-main{
+  display: flex;
+  justify-content: center;
 }
 </style>

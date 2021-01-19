@@ -10,7 +10,7 @@
     @click.stop="labelClick"
   >
     <div id="logo" :style="reverseStyle">
-    <img  id="img" :src="properties.Picture" :style="imageProperty">
+    <img v-if="properties.Picture" id="img" :src="properties.Picture" :style="imageProperty">
     <div v-if="!syncIsEditMode" id="label" :style="labelStyle">
       <span>{{ computedCaption.afterbeginCaption }}</span>
       <span class="spanClass">{{ computedCaption.acceleratorCaption }}</span>
@@ -242,8 +242,8 @@ export default class FDLabel extends Mixins(FdControlVue) {
   updateAutoSize () {
     if (this.properties.AutoSize === true) {
       const  imgStyle={
-      width:'auto',
-      height:'auto'
+      width:'fit-content',
+      height:'fit-content'
       }
       this.imageProperty = imgStyle
       if(this.properties.Picture){
@@ -362,13 +362,13 @@ export default class FDLabel extends Mixins(FdControlVue) {
     }
   pictureSize(){
     const  imgStyle={
-      width:'auto',
+      width:'fit-content',
       height:'fit-content'
     }
     if (this.properties.Picture) {
-      const imgProp = document.getElementById('img')
         Vue.nextTick(() => {
-           imgStyle.width = this.properties.Width! < imgProp!.clientWidth ? `${this.properties.Width}px` : 'auto'
+          const imgProp = document.getElementById('img')
+           imgStyle.width = this.properties.Width! < imgProp!.clientWidth ? `${this.properties.Width}px` : 'fit-content'
            imgStyle.height = this.properties.Height! < imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'
         })
     }

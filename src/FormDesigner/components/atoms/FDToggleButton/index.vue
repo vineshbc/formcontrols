@@ -125,6 +125,7 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
    */
   protected get styleObj (): Partial<CSSStyleDeclaration> {
     const controlProp = this.properties
+    this.pictureSize()
     this.reverseStyle.justifyContent = "center"
     if(!controlProp.Picture){
     this.reverseStyle.justifyContent = 
@@ -275,44 +276,6 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
     }
   }
 
-  @Watch('properties.Height')
-  updateImageSizeHeight () {
-    const  imgStyle={
-      width:'auto',
-      height:'fit-content'
-    }
-    if (this.properties.Picture) {
-      Vue.nextTick(() => {
-      const imgProp = document.getElementById('img')
-      // console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
-      if (this.properties.Height! < imgProp!.clientHeight) {
-          imgStyle.width = '100%'
-          imgStyle.height = 'auto'
-          this.reverseStyle.display = 'contents'
-      }
-      })
-    }
-      this.imageProperty = imgStyle
-  }
-  @Watch('properties.Width')
-  updateImageSizeWidth () {
-    const  imgStyle={
-      width:'auto',
-      height:'fit-content'
-    }
-    if (this.properties.Picture) {
-      Vue.nextTick(() => {
-      const imgProp = document.getElementById('img')
-      if (this.properties.Width! < imgProp!.clientWidth) {
-          imgStyle.width = '100%'
-          imgStyle.height = 'auto'
-          this.reverseStyle.display = 'contents'
-      }
-      })
-    }
-      this.imageProperty = imgStyle
-  }
-
   /**
    * @description changes width and height when autoSize is true by getting content offsetWidth
    *  and offsetHeight with the help of Ref attribute
@@ -321,12 +284,14 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
    */
   updateAutoSize () {
     if (this.properties.AutoSize === true) {
-    const  imgStyle={
-      width:'auto',
-      height:'auto'
-    }
-    this.positionLogo(this.properties.PicturePosition)
+      const  imgStyle={
+      width:'fit-content',
+      height:'fit-content'
+      }
       this.imageProperty = imgStyle
+      if(this.properties.Picture){
+      this.positionLogo(this.properties.PicturePosition)
+      }
       this.$nextTick(() => {
         this.updateDataModel({
           propertyName: 'Height',
@@ -428,6 +393,20 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
       // console.log("style||",style)
       this.labelStyle = style 
     }
+  pictureSize(){
+    const  imgStyle={
+      width:'fit-content',
+      height:'fit-content'
+    }
+    if (this.properties.Picture) {
+        Vue.nextTick(() => {
+          const imgProp = document.getElementById('img')
+           imgStyle.width = this.properties.Width! < imgProp!.clientWidth ? `${this.properties.Width}px` : 'fit-content'
+           imgStyle.height = this.properties.Height! < imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'
+        })
+    }
+      this.imageProperty = imgStyle
+  }
 
   /**
    * @description mounted initializes the values which are required for the component
