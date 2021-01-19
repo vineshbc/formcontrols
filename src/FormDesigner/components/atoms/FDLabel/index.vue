@@ -10,7 +10,7 @@
     @click.stop="labelClick"
   >
     <div id="logo" :style="reverseStyle">
-    <img v-if="properties.Picture" id="img" :src="properties.Picture" :style="imageProperty">
+    <img  id="img" :src="properties.Picture" :style="imageProperty">
     <div v-if="!syncIsEditMode" id="label" :style="labelStyle">
       <span>{{ computedCaption.afterbeginCaption }}</span>
       <span class="spanClass">{{ computedCaption.acceleratorCaption }}</span>
@@ -65,11 +65,13 @@ export default class FDLabel extends Mixins(FdControlVue) {
    */
   protected get cssStyleProperty (): Partial<CSSStyleDeclaration> {
     const controlProp = this.properties
+    this.pictureSize()
     this.reverseStyle.justifyContent = "center"
     if(!controlProp.Picture){
     this.reverseStyle.justifyContent = 
     controlProp.TextAlign === 0 ? 'flex-start': controlProp.TextAlign === 1 ? 'center' : 'flex-end'
-    }else{
+    }
+    else{
     this.positionLogo(controlProp.PicturePosition)
     }
     const font: font = controlProp.Font
@@ -160,43 +162,43 @@ export default class FDLabel extends Mixins(FdControlVue) {
       backgroundImage: 'none'
     }
   }
-  @Watch('properties.Height')
-  updateImageSizeHeight () {
-    const  imgStyle={
-      width:'auto',
-      height:'fit-content'
-    }
-    if (this.properties.Picture) {
-      Vue.nextTick(() => {
-      const imgProp = document.getElementById('img')
-      // console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
-      if (this.properties.Height! < imgProp!.clientHeight) {
-          imgStyle.width = '100%'
-          imgStyle.height = 'auto'
-          this.reverseStyle.display = 'contents'
-      }
-      })
-    }
-      this.imageProperty = imgStyle
-  }
-  @Watch('properties.Width')
-  updateImageSizeWidth () {
-    const  imgStyle={
-      width:'auto',
-      height:'fit-content'
-    }
-    if (this.properties.Picture) {
-      Vue.nextTick(() => {
-      const imgProp = document.getElementById('img')
-      if (this.properties.Width! < imgProp!.clientWidth) {
-          imgStyle.width = '100%'
-          imgStyle.height = 'auto'
-          this.reverseStyle.display = 'contents'
-      }
-      })
-    }
-      this.imageProperty = imgStyle
-  }
+  // @Watch('properties.Height')
+  // updateImageSizeHeight () {
+  //   const  imgStyle={
+  //     width:'auto',
+  //     height:'fit-content'
+  //   }
+  //   if (this.properties.Picture) {
+  //     Vue.nextTick(() => {
+  //     const imgProp = document.getElementById('img')
+  //     // console.log('imgStyle||', imgProp!.clientHeight,imgProp!.clientWidth)
+  //     if (this.properties.Height! < imgProp!.clientHeight) {
+  //         imgStyle.width = '100%'
+  //         imgStyle.height = '100%'
+  //         this.reverseStyle.display = 'contents'
+  //     }
+  //     })
+  //   }
+  //     this.imageProperty = imgStyle
+  // }
+  // @Watch('properties.Width')
+  // updateImageSizeWidth () {
+  //   const  imgStyle={
+  //     width:'auto',
+  //     height:'fit-content'
+  //   }
+  //   if (this.properties.Picture) {
+  //     Vue.nextTick(() => {
+  //     const imgProp = document.getElementById('img')
+  //     if (this.properties.Width! < imgProp!.clientWidth) {
+  //         imgStyle.width = '100%'
+  //         imgStyle.height = '100%'
+  //         this.reverseStyle.display = 'contents'
+  //     }
+  //     })
+  //   }
+  //     this.imageProperty = imgStyle
+  // }
 
   /**
    * @description watches changes in propControlData to set autoset when true
@@ -243,8 +245,10 @@ export default class FDLabel extends Mixins(FdControlVue) {
       width:'auto',
       height:'auto'
       }
-    this.positionLogo(this.properties.PicturePosition)
       this.imageProperty = imgStyle
+      if(this.properties.Picture){
+      this.positionLogo(this.properties.PicturePosition)
+      }
       this.$nextTick(() => {
         this.updateDataModel({
           propertyName: 'Height',
@@ -356,6 +360,20 @@ export default class FDLabel extends Mixins(FdControlVue) {
       // console.log("style||",style)
       this.labelStyle = style 
     }
+  pictureSize(){
+    const  imgStyle={
+      width:'auto',
+      height:'fit-content'
+    }
+    if (this.properties.Picture) {
+      const imgProp = document.getElementById('img')
+        Vue.nextTick(() => {
+           imgStyle.width = this.properties.Width! < imgProp!.clientWidth ? `${this.properties.Width}px` : 'auto'
+           imgStyle.height = this.properties.Height! < imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'
+        })
+    }
+      this.imageProperty = imgStyle
+  }
 }
 </script>
 
