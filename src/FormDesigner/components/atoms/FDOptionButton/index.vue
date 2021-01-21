@@ -23,10 +23,9 @@
         ref="spanRef"
       ></span
     ></label>
-      <div id="logo" :style="reverseStyle">
-      <img v-if="properties.Picture" id="img" :src="properties.Picture" :style="imageProperty">
-        <div ref="divAutoSize"
-          v-if="!syncIsEditMode || isRunMode"
+      <div id="logo" ref="divAutoSize" :style="reverseStyle">
+      <img v-if="properties.Picture" id="img" ref="imageProps" :src="properties.Picture" :style="imageProperty">
+        <div v-if="!syncIsEditMode || isRunMode"
           @click="isRunMode && makeChecked($event)"
           :style="labelStyle"
         >
@@ -68,6 +67,9 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
   @Ref('spanRef') spanRef!: HTMLSpanElement;
   @Ref('optionBtnSpanRef') optionBtnSpanRef!: FDEditableText
   $el: HTMLDivElement
+  $refs:{
+    imageProps:HTMLSpanElement
+  }
   alignItem: boolean = false
   labelStyle = {}
   reverseStyle = {
@@ -86,8 +88,8 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
     const controlProp = this.properties
     return {
         order : controlProp.Alignment === 1 ? '0' : '1',
-      // position: 'sticky',
-      // top: `${controlProp.Height! / 2 - 10}px`
+      position: 'sticky',
+      top: `${controlProp.Height! / 2 - 10}px`
     }
   }
 
@@ -237,12 +239,21 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
     } else {
       display = 'grid'
     }
-    let alignItems = 'center'
+    let alignItems = 'normal'
     if(controlProp.Picture){
-      let labelStyle = document.getElementById('logo')
-      if (this.properties.Height! < labelStyle!.clientHeight) {
-         alignItems = 'normal'
+      this.$nextTick(() => {
+      if(this.$refs.imageProps.clientHeight < this.properties.Height! )
+      {
+       alignItems = 'center'
       }
+      })
+      let labelStyle = document.getElementById('logo')
+        if (this.properties.Height! >= labelStyle!.clientHeight) {
+        alignItems = 'center'
+      }
+    }
+    else{
+        alignItems = 'center'
     }
     return {
       left: `${controlProp.Left}px`,
@@ -434,6 +445,22 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
       this.updateAutoSize()
     }
   }
+
+  @Watch('properties.Picture', {deep:true})
+  pictureChange(){
+    if(this.properties.Picture){
+    const  imgStyle={
+      width:'auto',
+      height:'auto'
+    }
+    this.imageProperty = imgStyle
+    //wait for 100ms to get image tag propertie
+      setTimeout(() => {
+        this.pictureSize()
+        this.positionLogo(this.properties.PicturePosition)
+      }, 100);
+    }
+  }
   /**
    * @description  sets controlSource if present and updates Value property
    * @function controlSource
@@ -546,8 +573,8 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
         Vue.nextTick(() => {
           const imgProp = document.getElementById('img')
           const logoProp = document.getElementById('logo-main')
-           imgStyle.width = this.properties.Width! < imgProp!.clientWidth ? `${this.properties.Width!-15}px` : 'fit-content'
-           imgStyle.height = this.properties.Height! < imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'
+           imgStyle.width = this.properties.Width! <= imgProp!.clientWidth ? `${this.properties.Width!-15}px` : 'fit-content'
+           imgStyle.height = this.properties.Height! <= imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'
         })
     }
    this.imageProperty = imgStyle
@@ -613,8 +640,8 @@ export default class FDOptionButton extends Mixins(FdControlVue) {
 
 .control {
   display: inline-flex;
-  /* position: sticky;
-  top: 47%; */
+  position: sticky;
+  top: 47%;
   align-items: center;
 }
 

@@ -16,7 +16,7 @@
     @click.stop="commandButtonClick"
   >
   <div id="logo" :style="reverseStyle">
-    <img v-if="properties.Picture" id="img" :src="properties.Picture" :style="imageProperty">
+    <img v-if="properties.Picture" id="img" ref="imageProps" :src="properties.Picture" :style="imageProperty">
     <div v-if="!syncIsEditMode || isRunMode" :style="labelStyle">
       <span>{{ computedCaption.afterbeginCaption }}</span>
       <span class="spanClass">{{ computedCaption.acceleratorCaption }}</span>
@@ -50,6 +50,9 @@ import Vue from 'vue'
 })
 export default class FDCommandButton extends Mixins(FdControlVue) {
   $el!: HTMLButtonElement;
+  $refs:{
+    imageProps:HTMLSpanElement
+  }
   isClicked: boolean = false;
   isContentEditable: boolean = false;
   labelStyle = {}
@@ -223,8 +226,8 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
     if (this.properties.Picture) {
         Vue.nextTick(() => {
           const imgProp = document.getElementById('img')
-           imgStyle.width = this.properties.Width! < imgProp!.clientWidth ? `${this.properties.Width}px` : 'fit-content'
-           imgStyle.height = this.properties.Height! < imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'
+           imgStyle.width = this.properties.Width! <= imgProp!.clientWidth ? `${this.properties.Width}px` : 'fit-content'
+           imgStyle.height = this.properties.Height! <= imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'
         })
     }
     this.imageProperty = imgStyle
@@ -255,13 +258,19 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
       display = 'inline-block'
     }
     this.reverseStyle.justifyContent = 'center'
-    let alignItems = 'normal'
+    let alignItems = 'baseline'
     if(controlProp.Picture){
       display = 'flex'
       this.positionLogo(controlProp.PicturePosition)
+      this.$nextTick(() => {
+      if(this.$refs.imageProps.clientHeight < this.properties.Height! )
+      {
+       alignItems = 'center'
+      }
+      })
       let labelStyle = document.getElementById('logo')
-      if (this.properties.Height! > labelStyle!.clientHeight) {
-         alignItems = 'center'
+        if (this.properties.Height! >= labelStyle!.clientHeight) {
+        alignItems = 'center'
       }
     }
     return {
@@ -359,6 +368,21 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
   autoSizeValidateOnCaptionChange () {
     if (this.properties.AutoSize) {
       this.updateAutoSize()
+    }
+  }
+  @Watch('properties.Picture', {deep:true})
+  pictureChange(){
+    if(this.properties.Picture){
+    const  imgStyle={
+      width:'auto',
+      height:'auto'
+    }
+    this.imageProperty = imgStyle
+    //wait for 100ms to get image tag propertie
+      setTimeout(() => {
+        this.pictureSize()
+        this.positionLogo(this.properties.PicturePosition)
+      }, 100);
     }
   }
   /**
