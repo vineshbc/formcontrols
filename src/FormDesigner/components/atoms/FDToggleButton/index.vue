@@ -1,6 +1,7 @@
 <template>
   <button
     class="toggle-button"
+     id="idBtn"
     :style="styleObj"
     :name="properties.Name"
     :tabindex="properties.TabIndex"
@@ -52,7 +53,7 @@ import Vue from 'vue'
 export default class FDToggleButton extends Mixins(FdControlVue) {
   $el!: HTMLButtonElement;
   $refs:{
-    imageProps:HTMLSpanElement
+    imageProps:HTMLImageElement
   }
   isClicked: boolean = true;
   isFocus: boolean = false;
@@ -152,18 +153,27 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
     } else {
       display = 'inline-block'
     }
-    let alignItems = 'baseline'
+    let alignItems = 'inherit'
     if(controlProp.Picture){
       display = 'flex'
-      this.$nextTick(() => {
-      if(this.$refs.imageProps.clientHeight < this.properties.Height! )
-      {
-       alignItems = 'center'
-      }
-      })
-      let labelStyle = document.getElementById('logo')
-        if (this.properties.Height! >= labelStyle!.clientHeight) {
+      // this.$nextTick(() => {
+      // if(this.$refs.imageProps.clientHeight < this.properties.Height! )
+      // {
+      //  alignItems = 'center'
+      // }
+      // })
+      // let labelStyle = document.getElementById('logo')
+      //   if (this.properties.Height! > labelStyle!.clientHeight) {
+      //   alignItems = 'center'
+      // }
+        if ( this.$refs.imageProps && this.$refs.imageProps.naturalHeight > this.properties.Height! ){
+          alignItems = 'inherit'
+        }
+      else {
+        let labelStyle = document.getElementById('logo')
+        if (this.properties.Width! > labelStyle!.clientWidth && this.properties.Height! > labelStyle!.clientHeight) {
         alignItems = 'center'
+        }
       }
     }
     return {
@@ -309,6 +319,8 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
    */
   updateAutoSize () {
     if (this.properties.AutoSize === true) {
+      const btnId = document.getElementById('idBtn')
+      btnId!.style.alignItems = 'baseline'
       const  imgStyle={
       width:'fit-content',
       height:'fit-content'
@@ -421,15 +433,18 @@ export default class FDToggleButton extends Mixins(FdControlVue) {
   pictureSize(){
     const  imgStyle={
       width:'fit-content',
-      height:'fit-content'
+      height:'fit-content',
+      maxWidth:'100%',
     }
+    
     if (this.properties.Picture) {
         Vue.nextTick(() => {
-          const imgProp = document.getElementById('img')
-          console.log("image size||",this.properties.Width,imgProp!.clientWidth)
+           const imgProp = document.getElementById('img')
+           console.log("image size||",this.properties.Width,imgProp!.clientWidth)
            imgStyle.width = this.properties.Width! <= imgProp!.clientWidth ? `${this.properties.Width}px` : 'fit-content'
-           imgStyle.height = this.properties.Height! <= imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'
-        })
+           imgStyle.height = this.properties.Height! <= imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'    
+           imgProp!.scrollIntoView(true)          
+       })
     }
       this.imageProperty = imgStyle
   }
