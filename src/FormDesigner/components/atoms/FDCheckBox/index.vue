@@ -22,9 +22,9 @@
         ref="spanRef"
       ></span
     ></label>
-      <div ref="divAutoSize" id="logo" :style="reverseStyle">
-      <img id="img" v-if="properties.Picture" ref="imageProps" :src="properties.Picture" :style="imageProperty">
-        <div v-if="!syncIsEditMode || isRunMode"
+      <div  ref="logoProps" id="logo" :style="reverseStyle">
+      <img id="img" v-if="properties.Picture" ref="imageProps" :src="properties.Picture" :style="[imageProperty,imagePos]">
+        <div ref="labelProps" v-if="!syncIsEditMode || isRunMode"
           @click="isRunMode && makeChecked($event)"
           :style="labelStyle"
         >
@@ -36,7 +36,7 @@
         </div>
         <FDEditableText
           v-else
-          ref="checkBoxSpanRef"
+          ref="labelProps"
           :editable="isRunMode === false && syncIsEditMode"
           :caption="properties.Caption"
           :style="labelStyle"
@@ -62,16 +62,18 @@ import FDEditableText from '@/FormDesigner/components/atoms/FDEditableText/index
 })
 export default class FDCheckBox extends Mixins(FdControlVue) {
   @Ref('checkboxInput') checkboxInput!: HTMLInputElement;
-  @Ref('divAutoSize') autoSizecheckbox!: HTMLDivElement;
   @Ref('spanRef') spanRef!: HTMLSpanElement;
-  @Ref('checkBoxSpanRef') checkBoxSpanRef!: FDEditableText
+  @Ref('labelProps') labelProps!: FDEditableText
   $el: HTMLDivElement
+  imagePos:any ={}
   $refs:{
-    imageProps:HTMLSpanElement
+    imageProps:HTMLImageElement,
+    labelProps:HTMLStyleElement,
+     logoProps:HTMLStyleElement
   }
   alignItem: boolean = false
   labelStyle = {}
-  reverseStyle = {
+  reverseStyle:any = {
    display : '',
    flexDirection : '',
    justifyItems : '',
@@ -232,21 +234,11 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
     } else {
       display = 'grid'
     }
-    let alignItems = 'normal'
+    const labelAlignItems = controlProp.Picture? 'inherit':'center'
     if(controlProp.Picture){
-      this.$nextTick(() => {
-      if(this.$refs.imageProps.clientHeight < this.properties.Height! )
-      {
-       alignItems = 'center'
-      }
+      Vue.nextTick(()=>{
+          this.labelAlignment()
       })
-      let labelStyle = document.getElementById('logo')
-        if (this.properties.Height! >= labelStyle!.clientHeight) {
-        alignItems = 'center'
-      }
-    }
-    else{
-        alignItems = 'center'
     }
     return {
       left: `${controlProp.Left}px`,
@@ -299,7 +291,7 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
       // alignItems: font.FontSize! > 17 ? 'center' : '',
       alignContent: 'center',
       boxShadow: 'none',
-      alignItems: alignItems
+      alignItems: labelAlignItems
     }
   }
 
@@ -364,7 +356,7 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
   editableTextVerify () {
     if (this.isEditMode) {
       Vue.nextTick(() => {
-        if (this.isEditMode && this.checkBoxSpanRef.$el.clientHeight > this.properties.Height!) {
+        if (this.isEditMode && this.labelProps.$el.clientHeight > this.properties.Height!) {
           this.alignItem = true
         } else {
           this.alignItem = false
@@ -439,19 +431,13 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
       this.positionLogo(this.properties.PicturePosition)
       }
       this.$nextTick(() => {
-        let divRef: HTMLDivElement = this.autoSizecheckbox
-        const offsetWidth = (divRef.childNodes[0] as HTMLSpanElement)
-          .offsetWidth
-        const offsetHeight = (divRef.childNodes[0] as HTMLSpanElement)
-          .offsetHeight
-        // Value 10 for checkbox, 4 for Gap style value, and offsetHeight and offsetWidth + 1
-        this.updateDataModel({
-          propertyName: 'Width',
-          value: 10 + 4 + offsetWidth + 1
-        })
         this.updateDataModel({
           propertyName: 'Height',
-          value: 10 + 4 + offsetHeight + 1
+          value:  this.getWidthHeight().height
+        })
+        this.updateDataModel({
+          propertyName: 'Width',
+          value: this.getWidthHeight().width + 6
         })
       })
     } else {
@@ -511,7 +497,7 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
   checkBoxClick (event: MouseEvent) {
     this.selectedItem(event)
     if (this.isEditMode) {
-      (this.checkBoxSpanRef.$el as HTMLSpanElement).focus()
+      (this.labelProps.$el as HTMLSpanElement).focus()
     }
   }
   positionLogo(value:any){
@@ -533,14 +519,17 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
       position:'',
       justifyContent:'center',
       alignItems: '',
-      width:''
+      width:'',
+      alignSelf:'center'
       }
+      this.imagePos.alignSelf = ''
       this.reverseStyle.display = 'flex'
       switch(value) {
         case 0: 
         break
         case 1:style.alignItems = 'center'
-        this.reverseStyle.alignItems = 'center'
+        // this.reverseStyle.alignItems = 'center'
+        this.imagePos.alignSelf = 'center'
         break
         case 2:style.alignItems = 'flex-end'
         this.reverseStyle.alignItems = 'flex-end'
@@ -550,7 +539,8 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
         case 4:
         this.reverseStyle.flexDirection = 'row-reverse'
         style.alignItems = 'center'
-        this.reverseStyle.alignItems = 'center'
+        // this.reverseStyle.alignItems = 'center'
+        this.imagePos.alignSelf = 'center'
         break
         case 5:
         this.reverseStyle.flexDirection = 'row-reverse'
@@ -590,27 +580,83 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
         style.left = '50%',
         style.transform ='translate(-50%, -50%)'
         style.justifyContent = 'center'
-        style.width = '100%'
+        style.width = 'fit-content'
         break
         default:
           console.log('none')
       }
+      // console.log("style||",style)
       this.labelStyle = style 
     }
   pictureSize(){
     const  imgStyle={
       width:'fit-content',
-      height:'fit-content'
+      height:'fit-content',
+      maxWidth:'100%',
     }
+    
     if (this.properties.Picture) {
         Vue.nextTick(() => {
-          const imgProp = document.getElementById('img')
-          const logoProp = document.getElementById('logo-main')
-           imgStyle.width = this.properties.Width! <= imgProp!.clientWidth ? `${this.properties.Width!-15}px` : 'fit-content'
-           imgStyle.height = this.properties.Height! <= imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'
-        })
+           const imgProp = this.$refs.imageProps
+           console.log("image size||",this.properties.Width,imgProp!.clientWidth)
+           imgStyle.width = this.properties.Width! <= imgProp!.clientWidth ? `${this.properties.Width}px` : 'fit-content'
+           imgStyle.height = this.properties.Height! <= imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'    
+           if(this.properties.PicturePosition === 9 || this.properties.PicturePosition === 10 || this.properties.PicturePosition === 11 ){
+           imgProp!.scrollIntoView(true)          
+           }
+       })
     }
-   this.imageProperty = imgStyle
+      this.imageProperty = imgStyle
+  }
+  labelAlignment(){
+    this.reverseStyle.alignSelf = 'inherit'
+    if (this.$refs.imageProps && this.$refs.imageProps.naturalHeight > this.properties.Height! ){
+          this.reverseStyle.alignSelf = 'inherit'
+        }
+    else {
+      let labelProp = this.$refs && this.$refs.logoProps? this.$refs.logoProps : this.$refs.logoProps.$el
+        if (this.properties.Width! >= labelProp!.clientWidth && this.properties.Height! >= labelProp!.clientHeight) {
+       this.reverseStyle.alignSelf = 'center'
+        }
+      }
+  }
+  getWidthHeight(){
+    let picPosLeftRight=[0,1,2,3,4,5]
+    let picPosTopBottom = [6,7,8,9,10,11]
+
+    const imgHeight = this.$refs.imageProps && this.$refs.imageProps.naturalHeight
+    const imgWidth = this.$refs.imageProps && this.$refs.imageProps.naturalWidth
+    const labelHeight = this.$refs.labelProps && this.$refs.labelProps.offsetHeight? this.$refs.labelProps.offsetHeight : this.$refs.labelProps.$el.offsetHeight
+    const labelWidth = this.$refs.labelProps && this.$refs.labelProps.offsetWidth ? this.$refs.labelProps.offsetWidth : this.$refs.labelProps.$el.offsetWidth
+    let widthHeightData = {
+      width: labelWidth,
+      height: labelHeight
+    }
+    if(this.properties.Picture){
+    if( picPosLeftRight.includes(this.properties.PicturePosition!)){
+      if(imgHeight >= labelHeight) {
+        widthHeightData.height = imgHeight
+      } else {
+        widthHeightData.height = labelHeight
+      }
+      widthHeightData.width = imgWidth + labelWidth
+    } 
+     else if(picPosTopBottom.includes(this.properties.PicturePosition!)){
+       
+       if(imgWidth >= labelWidth){
+         widthHeightData.width = imgWidth
+       }else {
+         widthHeightData.width = labelWidth 
+       }
+        widthHeightData.height = imgHeight + labelHeight
+     }
+     else if (this.properties.PicturePosition! === 12) {
+         widthHeightData.width = imgWidth >= labelWidth ? imgWidth : labelWidth
+         widthHeightData.height = imgHeight >= labelHeight ? imgHeight : labelHeight
+
+       }
+     }
+    return widthHeightData
   }
 }
 </script>
@@ -649,7 +695,7 @@ export default class FDCheckBox extends Mixins(FdControlVue) {
   display: inline-flex;
   position: sticky;
   top: 47%;
-  align-items: center;
+  align-self: center;
 }
 
 .control-indicator {

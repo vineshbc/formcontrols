@@ -16,14 +16,15 @@
     @keydown.enter.prevent="setContentEditable($event, true)"
     @click.stop="commandButtonClick"
   >
-  <div id="logo" :style="reverseStyle">
-    <img v-if="properties.Picture" id="img" ref="imageProps" :src="properties.Picture" :style="imageProperty">
-    <div v-if="!syncIsEditMode || isRunMode" :style="labelStyle">
+  <div id="logo" ref="logoProps" :style="reverseStyle">
+    <img v-if="properties.Picture" id="img" ref="imageProps" :src="properties.Picture" :style="[imageProperty,imagePos]">
+    <div v-if="!syncIsEditMode || isRunMode" :style="labelStyle"  ref="labelProps">
       <span>{{ computedCaption.afterbeginCaption }}</span>
       <span class="spanClass">{{ computedCaption.acceleratorCaption }}</span>
       <span>{{ computedCaption.beforeendCaption }}</span>
     </div>
     <FDEditableText
+      ref="labelProps"
       v-else
       :editable="isRunMode === false && syncIsEditMode"
       :style="labelStyle"
@@ -52,12 +53,14 @@ import Vue from 'vue'
 export default class FDCommandButton extends Mixins(FdControlVue) {
   $el!: HTMLButtonElement;
   $refs:{
-    imageProps:HTMLImageElement
+    imageProps:HTMLImageElement,
+    labelProps:HTMLStyleElement,
+    logoProps:HTMLStyleElement
   }
   isClicked: boolean = false;
   isContentEditable: boolean = false;
   labelStyle = {}
-  reverseStyle = {
+  reverseStyle:any = {
    display : '',
    flexDirection : '',
    justifyItems : '',
@@ -69,6 +72,7 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
   imageProperty = {
     height:'fit-content'
   }
+  imagePos:any={}
   /**
    * @description getDisableValue checks for the RunMode of the control and then returns after checking for the Enabled
    * and the Locked property
@@ -114,8 +118,6 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
    */
   updateAutoSize () {
     if (this.properties.AutoSize === true) {
-      const btnId = document.getElementById('idBtn')
-      btnId!.style.alignItems = 'baseline'
       const  imgStyle={
       width:'fit-content',
       height:'fit-content'
@@ -127,100 +129,16 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
       this.$nextTick(() => {
         this.updateDataModel({
           propertyName: 'Height',
-          value: (this.$el.childNodes[0] as HTMLSpanElement).offsetHeight + 5
+          value:  this.getWidthHeight().height
         })
         this.updateDataModel({
           propertyName: 'Width',
-          value: (this.$el.childNodes[0] as HTMLSpanElement).offsetWidth + 5
+          value: this.getWidthHeight().width + 6
         })
       })
     }
   }
 
-  positionLogo(value:any){
-      let style = {
-        order: Number(),
-        alignItems: '',
-        transform:'',
-        top:'',
-        left:'',
-        position:'',
-        display:'inline-flex',
-        width: '',
-        justifyContent:''
-      }
-      this.reverseStyle = {
-      display : '',
-      flexDirection : '',
-      justifyItems : '',
-      position:'',
-      justifyContent:'center',
-      alignItems: '',
-      width:''
-      }
-      this.reverseStyle.display = 'flex'
-      switch(value) {
-        case 0: 
-        break
-        case 1:style.alignItems = 'center'
-        this.reverseStyle.alignItems = 'center'
-        break
-        case 2:style.alignItems = 'flex-end'
-        this.reverseStyle.alignItems = 'flex-end'
-        break
-        case 3: this.reverseStyle.flexDirection = 'row-reverse'
-        break
-        case 4:
-        this.reverseStyle.flexDirection = 'row-reverse'
-        style.alignItems = 'center'
-        this.reverseStyle.alignItems = 'center'
-        break
-        case 5:
-        this.reverseStyle.flexDirection = 'row-reverse'
-        style.alignItems = 'flex-end'
-        this.reverseStyle.alignItems = 'flex-end'
-        break
-        case 6:
-        this.reverseStyle.display = 'grid'
-        break
-        case 7:  
-        this.reverseStyle.display = 'grid'
-        this.reverseStyle.justifyItems = 'center'
-        break
-        case 8:  
-        this.reverseStyle.display = 'grid'
-        this.reverseStyle.justifyItems = 'end'
-        break
-        case 9:  
-        this.reverseStyle.display = 'grid'
-        style.order= -1
-        break
-        case 10:  
-        this.reverseStyle.display = 'grid'
-        this.reverseStyle.justifyItems = 'center'
-        style.order = -1
-        break
-        case 11:  
-        this.reverseStyle.display = 'grid'
-        this.reverseStyle.justifyItems = 'end'
-        style.order= -1
-        break
-        case 12:  
-        this.reverseStyle.position = 'relative'
-        this.reverseStyle.width = '100%'
-        style.position = 'absolute',
-        style.top = '50%',
-        style.left = '50%',
-        style.transform ='translate(-50%, -50%)'
-        style.justifyContent = 'center'
-        style.width = '100%'
-        break
-        default:
-          console.log('none')
-      }
-      // console.log("style||",style)
-      this.labelStyle = style 
-    }
   pictureSize(){
     const  imgStyle={
       width:'fit-content',
@@ -230,11 +148,13 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
     
     if (this.properties.Picture) {
         Vue.nextTick(() => {
-           const imgProp = document.getElementById('img')
+           const imgProp = this.$refs.imageProps
            console.log("image size||",this.properties.Width,imgProp!.clientWidth)
            imgStyle.width = this.properties.Width! <= imgProp!.clientWidth ? `${this.properties.Width}px` : 'fit-content'
            imgStyle.height = this.properties.Height! <= imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'    
+           if(this.properties.PicturePosition === 9 || this.properties.PicturePosition === 10 || this.properties.PicturePosition === 11 ){
            imgProp!.scrollIntoView(true)          
+           }
        })
     }
       this.imageProperty = imgStyle
@@ -265,29 +185,13 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
       display = 'inline-block'
     }
     this.reverseStyle.justifyContent = 'center'
-    let alignItems = 'inherit'
+    const labelAlignItems = 'inherit'
     if(controlProp.Picture){
       display = 'flex'
       this.positionLogo(this.properties.PicturePosition)
-      // this.$nextTick(() => {
-      // if(this.$refs.imageProps.clientHeight < this.properties.Height! )
-      // {
-      //  alignItems = 'center'
-      // }
-      // })
-      // let labelStyle = document.getElementById('logo')
-      //   if (this.properties.Height! > labelStyle!.clientHeight) {
-      //   alignItems = 'center'
-      // }
-        if ( this.$refs.imageProps && this.$refs.imageProps.naturalHeight > this.properties.Height! ){
-          alignItems = 'inherit'
-        }
-      else {
-        let labelStyle = document.getElementById('logo')
-        if (this.properties.Width! > labelStyle!.clientWidth && this.properties.Height! > labelStyle!.clientHeight) {
-        alignItems = 'center'
-        }
-      }
+      Vue.nextTick(()=>{
+          this.labelAlignment()
+      })
     }
     return {
       ...(!controlProp.AutoSize && this.renderSize),
@@ -333,7 +237,7 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
       wordBreak: controlProp.WordWrap ? 'break-all' : 'normal',
       paddingLeft: controlProp.AutoSize ? '0px' : '0px',
       paddingRight: controlProp.WordWrap ? '0px' : '6px',
-      alignItems: alignItems
+      alignItems: labelAlignItems
       // backgroundImage: `url(${controlProp.Picture})`,
       // backgroundRepeat: this.getRepeat,
       // backgroundPosition: controlProp.Picture ? this.getPosition : '',
@@ -412,6 +316,144 @@ export default class FDCommandButton extends Mixins(FdControlVue) {
     this.$el.focus()
     this.setContentEditable(event, false)
   }
+    getWidthHeight(){
+    let picPosLeftRight=[0,1,2,3,4,5]
+    let picPosTopBottom = [6,7,8,9,10,11]
+
+    const imgHeight = this.$refs.imageProps && this.$refs.imageProps.naturalHeight
+    const imgWidth = this.$refs.imageProps && this.$refs.imageProps.naturalWidth
+    const labelHeight = this.$refs.labelProps && this.$refs.labelProps.offsetHeight? this.$refs.labelProps.offsetHeight : this.$refs.labelProps.$el.offsetHeight
+    const labelWidth = this.$refs.labelProps && this.$refs.labelProps.offsetWidth ? this.$refs.labelProps.offsetWidth : this.$refs.labelProps.$el.offsetWidth
+    let widthHeightData = {
+      width: labelWidth,
+      height: labelHeight
+    }
+    if(this.properties.Picture){
+    if( picPosLeftRight.includes(this.properties.PicturePosition!)){
+      if(imgHeight >= labelHeight) {
+        widthHeightData.height = imgHeight
+      } else {
+        widthHeightData.height = labelHeight
+      }
+      widthHeightData.width = imgWidth + labelWidth
+    } 
+     else if(picPosTopBottom.includes(this.properties.PicturePosition!)){
+       
+       if(imgWidth >= labelWidth){
+         widthHeightData.width = imgWidth
+       }else {
+         widthHeightData.width = labelWidth 
+       }
+        widthHeightData.height = imgHeight + labelHeight
+     }
+     else if (this.properties.PicturePosition! === 12) {
+         widthHeightData.width = imgWidth >= labelWidth ? imgWidth : labelWidth
+         widthHeightData.height = imgHeight >= labelHeight ? imgHeight : labelHeight
+
+       }
+     }
+    return widthHeightData
+  }
+  labelAlignment(){
+    this.reverseStyle.alignSelf = 'inherit'
+    if (this.$refs.imageProps && this.$refs.imageProps.naturalHeight > this.properties.Height! ){
+          this.reverseStyle.alignSelf = 'inherit'
+        }
+    else {
+      let labelProp = this.$refs && this.$refs.logoProps? this.$refs.logoProps : this.$refs.logoProps.$el
+        if (this.properties.Width! >= labelProp!.clientWidth && this.properties.Height! >= labelProp!.clientHeight) {
+       this.reverseStyle.alignSelf = 'center'
+        }
+      }
+  }
+    positionLogo(value:any){
+      let style = {
+        order: Number(),
+        alignItems: '',
+        transform:'',
+        top:'',
+        left:'',
+        position:'',
+        display:'inline-flex',
+        width: '',
+        justifyContent:''
+      }
+      this.reverseStyle = {
+      display : '',
+      flexDirection : '',
+      justifyItems : '',
+      position:'',
+      justifyContent:'center',
+      alignItems: '',
+      width:'',
+      alignSelf:'center'
+      }
+      this.imagePos.alignSelf = ''
+      this.reverseStyle.display = 'flex'
+      switch(value) {
+        case 0: 
+        break
+        case 1:style.alignItems = 'center'
+        // this.reverseStyle.alignItems = 'center'
+        this.imagePos.alignSelf = 'center'
+        break
+        case 2:style.alignItems = 'flex-end'
+        this.reverseStyle.alignItems = 'flex-end'
+        break
+        case 3: this.reverseStyle.flexDirection = 'row-reverse'
+        break
+        case 4:
+        this.reverseStyle.flexDirection = 'row-reverse'
+        style.alignItems = 'center'
+        // this.reverseStyle.alignItems = 'center'
+        this.imagePos.alignSelf = 'center'
+        break
+        case 5:
+        this.reverseStyle.flexDirection = 'row-reverse'
+        style.alignItems = 'flex-end'
+        this.reverseStyle.alignItems = 'flex-end'
+        break
+        case 6:
+        this.reverseStyle.display = 'grid'
+        break
+        case 7:  
+        this.reverseStyle.display = 'grid'
+        this.reverseStyle.justifyItems = 'center'
+        break
+        case 8:  
+        this.reverseStyle.display = 'grid'
+        this.reverseStyle.justifyItems = 'end'
+        break
+        case 9:  
+        this.reverseStyle.display = 'grid'
+        style.order= -1
+        break
+        case 10:  
+        this.reverseStyle.display = 'grid'
+        this.reverseStyle.justifyItems = 'center'
+        style.order = -1
+        break
+        case 11:  
+        this.reverseStyle.display = 'grid'
+        this.reverseStyle.justifyItems = 'end'
+        style.order= -1
+        break
+        case 12:  
+        this.reverseStyle.position = 'relative'
+        this.reverseStyle.width = '100%'
+        style.position = 'absolute',
+        style.top = '50%',
+        style.left = '50%',
+        style.transform ='translate(-50%, -50%)'
+        style.justifyContent = 'center'
+        style.width = 'fit-content'
+        break
+        default:
+          console.log('none')
+      }
+      // console.log("style||",style)
+      this.labelStyle = style 
+    }
 }
 </script>
 

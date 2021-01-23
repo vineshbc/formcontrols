@@ -10,14 +10,15 @@
     @keydown.enter.prevent="setContentEditable($event, true)"
     @click.stop="labelClick"
   >
-    <div id="logo" :style="reverseStyle">
-    <img  v-if="properties.Picture" id="img" ref="imageProps" :src="properties.Picture" :style="imageProperty">
-    <div v-if="!syncIsEditMode" id="label" :style="labelStyle">
+    <div id="logo" ref="logoProps" :style="reverseStyle">
+    <img  v-if="properties.Picture" id="img" ref="imageProps" :src="properties.Picture" :style="[imageProperty,imagePos]">
+    <div v-if="!syncIsEditMode" id="label" :style="labelStyle" ref="labelProps">
       <span>{{ computedCaption.afterbeginCaption }}</span>
       <span class="spanClass">{{ computedCaption.acceleratorCaption }}</span>
       <span>{{ computedCaption.beforeendCaption }}</span>
     </div>
     <FDEditableText
+      ref="labelProps"
       v-else
       id="label"
       :editable="isRunMode === false && syncIsEditMode"
@@ -52,14 +53,18 @@ export default class FDLabel extends Mixins(FdControlVue) {
    position:'',
    justifyContent:'center',
    alignItems: '',
-   width:''
+   width:'',
+   alignSelf:'center'
   }
   imageProperty={
-    height:'fit-content'
+    height:'fit-content',
   }
+  imagePos:any ={}
   $el!: HTMLLabelElement;
   $refs:{
-    imageProps:HTMLImageElement
+    imageProps:HTMLImageElement,
+    labelProps:HTMLStyleElement,
+     logoProps:HTMLStyleElement
   }
   /**
    * @description style object is passed to :style attribute in label tag
@@ -94,28 +99,12 @@ export default class FDLabel extends Mixins(FdControlVue) {
     } else {
       display = 'inline-block'
     }
-    let alignItems = 'inherit'
+    const labelAlignItems = 'inherit'
     if(controlProp.Picture){
       display = 'flex'
-      // this.$nextTick(() => {
-      // if(this.$refs.imageProps.clientHeight < this.properties.Height! )
-      // {
-      //  alignItems = 'center'
-      // }
-      // })
-      // let labelStyle = document.getElementById('logo')
-      //   if (this.properties.Height! > labelStyle!.clientHeight) {
-      //   alignItems = 'center'
-      // }
-        if ( this.$refs.imageProps && this.$refs.imageProps.naturalHeight > this.properties.Height! ){
-          alignItems = 'inherit'
-        }
-      else {
-        let labelStyle = document.getElementById('logo')
-        if (this.properties.Width! >= labelStyle!.clientWidth && this.properties.Height! >= labelStyle!.clientHeight) {
-        alignItems = 'center'
-        }
-      }
+      Vue.nextTick(()=>{
+          this.labelAlignment()
+      })
     }
     return {
       ...(!controlProp.AutoSize && this.renderSize),
@@ -166,7 +155,7 @@ export default class FDLabel extends Mixins(FdControlVue) {
       // backgroundPositionX: this.getPositionX,
       // backgroundPositionY: this.getPositionY,
       display: display,
-      alignItems: alignItems
+      alignItems: labelAlignItems
     }
   }
   /**
@@ -256,7 +245,7 @@ export default class FDLabel extends Mixins(FdControlVue) {
     if(this.properties.Picture){
     const  imgStyle={
       width:'auto',
-      height:'auto'
+      height:'auto',
     }
     this.imageProperty = imgStyle
     //wait for 100ms to get image tag propertie
@@ -275,11 +264,9 @@ export default class FDLabel extends Mixins(FdControlVue) {
    */
   updateAutoSize () {
     if (this.properties.AutoSize === true) {
-      const lableId = document.getElementById('idLabel')
-      // lableId!.style.display = 'inline-block'
       const  imgStyle={
       width:'fit-content',
-      height:'fit-content'
+      height:'fit-content',
       }
       this.imageProperty = imgStyle
       if(this.properties.Picture){
@@ -288,11 +275,11 @@ export default class FDLabel extends Mixins(FdControlVue) {
       this.$nextTick(() => {
         this.updateDataModel({
           propertyName: 'Height',
-          value: (this.$el.childNodes[0] as HTMLSpanElement).offsetHeight + 10
+          value:  this.getWidthHeight().height
         })
         this.updateDataModel({
           propertyName: 'Width',
-          value: (this.$el.childNodes[0] as HTMLSpanElement).offsetWidth + 5
+          value: this.getWidthHeight().width + 6
         })
       })
     } else {
@@ -331,14 +318,17 @@ export default class FDLabel extends Mixins(FdControlVue) {
       position:'',
       justifyContent:'center',
       alignItems: '',
-      width:''
+      width:'',
+      alignSelf:'center'
       }
+      this.imagePos.alignSelf = ''
       this.reverseStyle.display = 'flex'
       switch(value) {
         case 0: 
         break
         case 1:style.alignItems = 'center'
-        this.reverseStyle.alignItems = 'center'
+        // this.reverseStyle.alignItems = 'center'
+        this.imagePos.alignSelf = 'center'
         break
         case 2:style.alignItems = 'flex-end'
         this.reverseStyle.alignItems = 'flex-end'
@@ -348,7 +338,8 @@ export default class FDLabel extends Mixins(FdControlVue) {
         case 4:
         this.reverseStyle.flexDirection = 'row-reverse'
         style.alignItems = 'center'
-        this.reverseStyle.alignItems = 'center'
+        // this.reverseStyle.alignItems = 'center'
+        this.imagePos.alignSelf = 'center'
         break
         case 5:
         this.reverseStyle.flexDirection = 'row-reverse'
@@ -388,7 +379,7 @@ export default class FDLabel extends Mixins(FdControlVue) {
         style.left = '50%',
         style.transform ='translate(-50%, -50%)'
         style.justifyContent = 'center'
-        style.width = '100%'
+        style.width = 'fit-content'
         break
         default:
           console.log('none')
@@ -405,15 +396,68 @@ export default class FDLabel extends Mixins(FdControlVue) {
     
     if (this.properties.Picture) {
         Vue.nextTick(() => {
-           const imgProp = document.getElementById('img')
+           const imgProp = this.$refs.imageProps
            console.log("image size||",this.properties.Width,imgProp!.clientWidth)
            imgStyle.width = this.properties.Width! <= imgProp!.clientWidth ? `${this.properties.Width}px` : 'fit-content'
            imgStyle.height = this.properties.Height! <= imgProp!.clientHeight ? `${this.properties.Height}px` : 'fit-content'    
+           if(this.properties.PicturePosition === 9 || this.properties.PicturePosition === 10 || this.properties.PicturePosition === 11 ){
            imgProp!.scrollIntoView(true)          
+           }
        })
     }
       this.imageProperty = imgStyle
   }
+  labelAlignment(){
+    this.reverseStyle.alignSelf = 'inherit'
+    if (this.$refs.imageProps && this.$refs.imageProps.naturalHeight > this.properties.Height! ){
+          this.reverseStyle.alignSelf = 'inherit'
+        }
+    else {
+      let labelProp = this.$refs && this.$refs.logoProps? this.$refs.logoProps : this.$refs.logoProps.$el
+        if (this.properties.Width! >= labelProp!.clientWidth && this.properties.Height! >= labelProp!.clientHeight) {
+       this.reverseStyle.alignSelf = 'center'
+        }
+      }
+  }
+  getWidthHeight(){
+    let picPosLeftRight=[0,1,2,3,4,5]
+    let picPosTopBottom = [6,7,8,9,10,11]
+
+    const imgHeight = this.$refs.imageProps && this.$refs.imageProps.naturalHeight
+    const imgWidth = this.$refs.imageProps && this.$refs.imageProps.naturalWidth
+    const labelHeight = this.$refs.labelProps && this.$refs.labelProps.offsetHeight? this.$refs.labelProps.offsetHeight : this.$refs.labelProps.$el.offsetHeight
+    const labelWidth = this.$refs.labelProps && this.$refs.labelProps.offsetWidth ? this.$refs.labelProps.offsetWidth : this.$refs.labelProps.$el.offsetWidth
+    let widthHeightData = {
+      width: labelWidth,
+      height: labelHeight
+    }
+    if(this.properties.Picture){
+    if( picPosLeftRight.includes(this.properties.PicturePosition!)){
+      if(imgHeight >= labelHeight) {
+        widthHeightData.height = imgHeight
+      } else {
+        widthHeightData.height = labelHeight
+      }
+      widthHeightData.width = imgWidth + labelWidth
+    } 
+     else if(picPosTopBottom.includes(this.properties.PicturePosition!)){
+       
+       if(imgWidth >= labelWidth){
+         widthHeightData.width = imgWidth
+       }else {
+         widthHeightData.width = labelWidth 
+       }
+        widthHeightData.height = imgHeight + labelHeight
+     }
+     else if (this.properties.PicturePosition! === 12) {
+         widthHeightData.width = imgWidth >= labelWidth ? imgWidth : labelWidth
+         widthHeightData.height = imgHeight >= labelHeight ? imgHeight : labelHeight
+
+       }
+     }
+    return widthHeightData
+  }
+  
 }
 </script>
 
